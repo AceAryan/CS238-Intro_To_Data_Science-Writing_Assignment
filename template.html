@@ -3,712 +3,577 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>COVID-19 Data Analysis Report</title>
+<title>COVID-19 Data Analysis — Kaggle Dataset</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/7.8.5/d3.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/topojson/3.0.2/topojson.min.js"></script>
 <style>
-  :root {
-    --bg: #fafaf8;
-    --surface: #ffffff;
-    --surface2: #f4f3ef;
-    --border: rgba(0,0,0,0.09);
-    --border2: rgba(0,0,0,0.15);
-    --text: #1a1a18;
-    --text2: #6b6b65;
-    --text3: #9b9b93;
-    --accent: #1d4ed8;
-    --accent2: #0f6e56;
-    --warn: #b45309;
-    --danger: #b91c1c;
-    --purple: #5b21b6;
-    --teal: #0f766e;
-    --radius: 10px;
-    --radius-lg: 14px;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --bg: #141412;
-      --surface: #1e1e1c;
-      --surface2: #282826;
-      --border: rgba(255,255,255,0.09);
-      --border2: rgba(255,255,255,0.15);
-      --text: #ededeb;
-      --text2: #9b9b93;
-      --text3: #6b6b65;
-    }
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: var(--bg); color: var(--text); font-family: 'Georgia', serif; line-height: 1.7; }
-  .container { max-width: 960px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+:root {
+  --bg:#fafaf8; --surface:#fff; --surface2:#f3f2ef; --border:rgba(0,0,0,0.08);
+  --border2:rgba(0,0,0,0.14); --text:#181816; --text2:#5a5a54; --text3:#9b9b93;
+  --blue:#1d4ed8; --green:#0f766e; --red:#b91c1c; --amber:#b45309; --purple:#5b21b6;
+  --r:10px; --rl:14px;
+}
+@media(prefers-color-scheme:dark){
+  :root{--bg:#131311;--surface:#1d1d1b;--surface2:#252523;--border:rgba(255,255,255,0.08);
+  --border2:rgba(255,255,255,0.14);--text:#edede9;--text2:#9b9b93;--text3:#6b6b65;}
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'Georgia',serif;line-height:1.7;}
+.page{max-width:980px;margin:0 auto;padding:2.5rem 1.5rem 5rem;}
 
-  /* Header */
-  .report-header { border-bottom: 1.5px solid var(--border2); padding-bottom: 1.5rem; margin-bottom: 2rem; }
-  .report-header h1 { font-size: 2.1rem; font-weight: 700; letter-spacing: -0.5px; color: var(--text); }
-  .report-header .subtitle { font-size: 1rem; color: var(--text2); margin-top: 0.4rem; font-family: 'Arial', sans-serif; }
-  .report-header .meta { font-size: 0.8rem; color: var(--text3); margin-top: 0.8rem; font-family: 'Arial', sans-serif; }
+/* Header */
+.hdr{border-bottom:1.5px solid var(--border2);padding-bottom:1.5rem;margin-bottom:2.2rem;}
+.hdr-eyebrow{font-size:.72rem;font-family:Arial,sans-serif;color:var(--text3);letter-spacing:1.2px;text-transform:uppercase;margin-bottom:.5rem;}
+.hdr h1{font-size:2rem;font-weight:700;letter-spacing:-.4px;}
+.hdr .sub{font-size:.95rem;color:var(--text2);font-family:Arial,sans-serif;margin-top:.35rem;}
+.hdr .meta{font-size:.76rem;color:var(--text3);font-family:Arial,sans-serif;margin-top:.7rem;}
+.data-badge{display:inline-block;background:rgba(16,185,129,.12);color:#065f46;border:0.5px solid rgba(16,185,129,.3);border-radius:4px;font-size:.7rem;padding:1px 7px;font-family:Arial,sans-serif;font-weight:600;margin-left:6px;}
+@media(prefers-color-scheme:dark){.data-badge{background:rgba(16,185,129,.15);color:#6ee7b7;}}
 
-  /* Section */
-  section { margin-bottom: 2.8rem; }
-  h2 { font-size: 1.35rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--text); font-family: 'Georgia', serif; }
-  h3 { font-size: 1.05rem; font-weight: 600; margin-bottom: 0.4rem; color: var(--text); font-family: 'Arial', sans-serif; }
-  p { font-size: 0.97rem; color: var(--text2); margin-bottom: 0.8rem; font-family: 'Arial', sans-serif; }
-  .section-label { display: inline-block; font-size: 0.7rem; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--accent); font-family: 'Arial', sans-serif; margin-bottom: 0.5rem; }
+/* Sections */
+section{margin-bottom:2.8rem;}
+.eyebrow{display:inline-block;font-size:.68rem;font-weight:700;letter-spacing:1.1px;text-transform:uppercase;color:var(--blue);font-family:Arial,sans-serif;margin-bottom:.4rem;}
+h2{font-size:1.3rem;font-weight:700;margin-bottom:.4rem;}
+h3{font-size:1rem;font-weight:600;font-family:Arial,sans-serif;margin-bottom:.3rem;color:var(--text);}
+p{font-size:.94rem;color:var(--text2);font-family:Arial,sans-serif;margin-bottom:.75rem;}
+.divider{border:none;border-top:1px solid var(--border);margin:2.2rem 0;}
 
-  /* Metric cards */
-  .metric-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; margin: 1rem 0 1.5rem; }
-  .metric-card { background: var(--surface2); border-radius: var(--radius); padding: 0.85rem 1rem; }
-  .metric-card .label { font-size: 0.72rem; color: var(--text3); font-family: 'Arial', sans-serif; letter-spacing: 0.3px; margin-bottom: 4px; text-transform: uppercase; }
-  .metric-card .value { font-size: 1.5rem; font-weight: 700; color: var(--text); font-family: 'Arial', sans-serif; }
-  .metric-card .sub { font-size: 0.75rem; color: var(--text3); font-family: 'Arial', sans-serif; margin-top: 2px; }
-  .metric-card.red .value { color: var(--danger); }
-  .metric-card.blue .value { color: var(--accent); }
-  .metric-card.green .value { color: var(--accent2); }
-  .metric-card.amber .value { color: var(--warn); }
+/* Metric grid */
+.mg{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:9px;margin:1rem 0 1.5rem;}
+.mc{background:var(--surface2);border-radius:var(--r);padding:.8rem 1rem;}
+.mc .lbl{font-size:.68rem;color:var(--text3);font-family:Arial,sans-serif;text-transform:uppercase;letter-spacing:.3px;margin-bottom:3px;}
+.mc .val{font-size:1.45rem;font-weight:700;font-family:Arial,sans-serif;color:var(--text);}
+.mc .sub{font-size:.72rem;color:var(--text3);font-family:Arial,sans-serif;margin-top:2px;}
+.mc.r .val{color:var(--red);} .mc.b .val{color:var(--blue);} .mc.g .val{color:var(--green);} .mc.a .val{color:var(--amber);}
 
-  /* Chart containers */
-  .chart-wrap { background: var(--surface); border: 0.5px solid var(--border); border-radius: var(--radius-lg); padding: 1.2rem 1.4rem; margin: 1rem 0; }
-  .chart-title { font-size: 0.85rem; font-weight: 600; color: var(--text2); font-family: 'Arial', sans-serif; margin-bottom: 0.8rem; }
-  .chart-canvas-wrap { position: relative; width: 100%; }
+/* Chart wrapper */
+.cw{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--rl);padding:1.1rem 1.3rem;margin:1rem 0;}
+.ct{font-size:.82rem;font-weight:600;color:var(--text2);font-family:Arial,sans-serif;margin-bottom:.7rem;}
+.cc{position:relative;width:100%;}
 
-  /* Hypothesis boxes */
-  .hyp-box { border-left: 3px solid var(--accent); background: var(--surface); border-radius: 0 var(--radius) var(--radius) 0; padding: 0.9rem 1.1rem; margin: 1rem 0; }
-  .hyp-box.confirmed { border-color: var(--accent2); }
-  .hyp-box.partial { border-color: var(--warn); }
-  .hyp-box.rejected { border-color: var(--danger); }
-  .hyp-label { font-size: 0.7rem; font-weight: 700; letter-spacing: 1px; text-transform: uppercase; font-family: 'Arial', sans-serif; margin-bottom: 4px; }
-  .hyp-box .hyp-label { color: var(--accent); }
-  .hyp-box.confirmed .hyp-label { color: var(--accent2); }
-  .hyp-box.partial .hyp-label { color: var(--warn); }
-  .hyp-box.rejected .hyp-label { color: var(--danger); }
-  .hyp-text { font-size: 0.92rem; color: var(--text); font-family: 'Arial', sans-serif; font-weight: 500; }
-  .hyp-result { font-size: 0.82rem; color: var(--text2); font-family: 'Arial', sans-serif; margin-top: 5px; }
+/* Legend */
+.leg{display:flex;flex-wrap:wrap;gap:12px;font-size:.76rem;font-family:Arial,sans-serif;color:var(--text2);margin-bottom:7px;}
+.ld{width:10px;height:10px;border-radius:2px;display:inline-block;margin-right:3px;}
 
-  /* Stat badge */
-  .stat-badge { display: inline-block; background: var(--surface2); border: 0.5px solid var(--border); border-radius: 6px; padding: 2px 8px; font-size: 0.78rem; font-family: 'Arial', sans-serif; color: var(--text2); margin: 0 3px; }
-  .stat-sig { color: var(--accent2); font-weight: 600; }
-  .stat-ns { color: var(--warn); font-weight: 600; }
+/* Hypothesis */
+.hyp{border-left:3px solid var(--blue);background:var(--surface);border-radius:0 var(--r) var(--r) 0;padding:.85rem 1.1rem;margin:.9rem 0;}
+.hyp.ok{border-color:var(--green);} .hyp.warn{border-color:var(--amber);} .hyp.no{border-color:var(--red);}
+.hyp-lbl{font-size:.68rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;font-family:Arial,sans-serif;color:var(--blue);margin-bottom:3px;}
+.hyp.ok .hyp-lbl{color:var(--green);} .hyp.warn .hyp-lbl{color:var(--amber);} .hyp.no .hyp-lbl{color:var(--red);}
+.hyp-q{font-size:.92rem;font-weight:600;font-family:Arial,sans-serif;color:var(--text);}
+.hyp-r{font-size:.8rem;font-family:Arial,sans-serif;color:var(--text2);margin-top:5px;}
+.sb{display:inline-block;background:var(--surface2);border:0.5px solid var(--border);border-radius:5px;padding:1px 7px;font-size:.76rem;font-family:Arial,sans-serif;color:var(--text2);margin:0 2px;}
+.sig{color:var(--green);font-weight:700;} .ns{color:var(--amber);font-weight:700;}
 
-  /* Table */
-  .data-table { width: 100%; border-collapse: collapse; font-family: 'Arial', sans-serif; font-size: 0.82rem; margin: 0.8rem 0; }
-  .data-table th { text-align: left; padding: 7px 10px; background: var(--surface2); color: var(--text2); font-weight: 600; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.4px; border-bottom: 1px solid var(--border2); }
-  .data-table td { padding: 7px 10px; border-bottom: 0.5px solid var(--border); color: var(--text); }
-  .data-table tr:hover td { background: var(--surface2); }
-  .data-table .num { text-align: right; font-variant-numeric: tabular-nums; }
-  .bar-mini { display: inline-block; height: 8px; border-radius: 4px; background: var(--accent); opacity: 0.7; vertical-align: middle; margin-left: 6px; }
+/* Table */
+.tbl{width:100%;border-collapse:collapse;font-family:Arial,sans-serif;font-size:.8rem;margin:.7rem 0;}
+.tbl th{text-align:left;padding:6px 9px;background:var(--surface2);color:var(--text2);font-weight:600;font-size:.72rem;text-transform:uppercase;letter-spacing:.4px;border-bottom:1px solid var(--border2);}
+.tbl td{padding:6px 9px;border-bottom:0.5px solid var(--border);color:var(--text);}
+.tbl tr:hover td{background:var(--surface2);}
+.num{text-align:right;font-variant-numeric:tabular-nums;}
 
-  /* Legend */
-  .legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 0.78rem; font-family: 'Arial', sans-serif; color: var(--text2); margin-bottom: 8px; }
-  .legend-dot { width: 10px; height: 10px; border-radius: 2px; display: inline-block; margin-right: 4px; }
+/* Tabs */
+.tabs{display:flex;gap:3px;border-bottom:1px solid var(--border);margin-bottom:1rem;}
+.tb{padding:5px 13px;font-size:.8rem;font-family:Arial,sans-serif;background:none;border:none;color:var(--text2);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:color .15s;}
+.tb.on{color:var(--blue);border-bottom-color:var(--blue);font-weight:600;}
+.tc{display:none;} .tc.on{display:block;}
 
-  /* Nav tabs */
-  .tab-nav { display: flex; gap: 4px; margin-bottom: 1rem; border-bottom: 1px solid var(--border); }
-  .tab-btn { padding: 6px 14px; font-size: 0.82rem; font-family: 'Arial', sans-serif; background: none; border: none; color: var(--text2); cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; transition: color 0.15s; }
-  .tab-btn.active { color: var(--accent); border-bottom-color: var(--accent); font-weight: 600; }
-  .tab-content { display: none; }
-  .tab-content.active { display: block; }
+/* Callout */
+.callout{background:var(--surface2);border-radius:var(--r);padding:.85rem 1.1rem;margin:.75rem 0;font-size:.86rem;font-family:Arial,sans-serif;color:var(--text);}
+.callout strong{color:var(--text);}
 
-  /* Callout */
-  .callout { background: var(--surface2); border-radius: var(--radius); padding: 0.9rem 1.1rem; margin: 0.8rem 0; font-size: 0.88rem; font-family: 'Arial', sans-serif; color: var(--text); }
-  .callout strong { color: var(--text); font-weight: 600; }
+/* Conclusion cards */
+.cgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:11px;margin:1rem 0;}
+.ccard{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--rl);padding:.95rem 1.1rem;}
+.ccard-lbl{font-size:.68rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;font-family:Arial,sans-serif;margin-bottom:5px;}
+.ccard-body{font-size:.88rem;font-family:Arial,sans-serif;color:var(--text);font-weight:500;}
 
-  /* scatter label */
-  .scatter-label { position: absolute; font-size: 10px; font-family: Arial, sans-serif; color: var(--text2); pointer-events: none; }
-
-  /* India map placeholder - bar chart instead */
-  .india-bar { margin: 0; }
-
-  .divider { border: none; border-top: 1px solid var(--border); margin: 2rem 0; }
-  .footnote { font-size: 0.75rem; color: var(--text3); font-family: 'Arial', sans-serif; margin-top: 2rem; border-top: 0.5px solid var(--border); padding-top: 1rem; }
+/* Footnote */
+.fn{font-size:.73rem;color:var(--text3);font-family:Arial,sans-serif;margin-top:2.5rem;border-top:0.5px solid var(--border);padding-top:1rem;}
 </style>
 </head>
 <body>
-<div class="container">
+<div class="page">
 
-<!-- ===== HEADER ===== -->
-<div class="report-header">
-  <div style="font-size:0.75rem; font-family:Arial,sans-serif; color:var(--text3); letter-spacing:1px; text-transform:uppercase; margin-bottom:0.6rem;">Data Analysis Report</div>
-  <h1>COVID-19: Spread, Severity & Systemic Responses</h1>
-  <p class="subtitle">A comparative analysis of country-level and India state-level data across the 2020–2022 pandemic period for Writing Assignment of CS 328. Made by Aryan Kumar (24110055), Shreyash Pandit (24110334), Sura Sravan Kumar (24110362).</p>
-  <p class="meta">Datasets: WHO/OWID country-level statistics · MoHFW India state-wise data · ~35 countries · 30 Indian states/UTs &nbsp;|&nbsp; Analysis period: March 2020 – December 2022</p>
+<!-- HEADER -->
+<div class="hdr">
+  <div class="hdr-eyebrow">Data Analysis Report</div>
+  <h1>COVID-19: Spread, Severity &amp; Systemic Responses</h1>
+  <p class="sub">A data-driven investigation across 187 countries and all WHO regions, Jan 22 – Jul 27, 2020</p>
+  <p class="meta">
+    Kaggle datasets used <span class="data-badge">✓ Real data</span>:
+    country_wise_latest.csv · worldometer_data.csv · day_wise.csv · full_grouped.csv · covid_19_clean_complete.csv
+    &nbsp;|&nbsp; 187–210 countries · 188 days · ~85K rows total
+  </p>
 </div>
 
-<!-- ===== SECTION 1: DATA OVERVIEW ===== -->
+<!-- 1 DATA OVERVIEW -->
 <section>
-  <span class="section-label">1 — Data Overview</span>
-  <h2>Global Snapshot</h2>
-  <p>The dataset covers cumulative COVID-19 cases, deaths, vaccinations, healthcare infrastructure (beds per 1,000 population), GDP per capita, median age, and stringency indices for 35 countries across 6 continents. For India, 30 states and UTs are captured with additional indicators including testing rates, literacy, and urbanisation.</p>
+  <span class="eyebrow">1 — Data Overview</span>
+  <h2>Snapshot at July 27, 2020</h2>
+  <p>The dataset captures the first wave of the pandemic in full, spanning 188 days from the earliest reported cases in January 2020 through late July 2020, when global daily new cases were accelerating toward 300K/day. The worldometer file adds infrastructure and testing data for 209 territories.</p>
 
-  <div class="metric-grid">
-    <div class="metric-card red"><div class="label">Global cases</div><div class="value">636M+</div><div class="sub">in dataset countries</div></div>
-    <div class="metric-card red"><div class="label">Global deaths</div><div class="value">5.0M+</div><div class="sub">CFR ≈ 0.79%</div></div>
-    <div class="metric-card blue"><div class="label">Vaccinations</div><div class="value">7.1B+</div><div class="sub">doses administered</div></div>
-    <div class="metric-card amber"><div class="label">India cases</div><div class="value">44.7M</div><div class="sub">2nd highest globally</div></div>
-    <div class="metric-card green"><div class="label">India CFR</div><div class="value">1.19%</div><div class="sub">vs global 0.79%</div></div>
-    <div class="metric-card"><div class="label">Top vacc. rate</div><div class="value">253%</div><div class="sub">S. Korea per 100</div></div>
+  <div class="mg">
+    <div class="mc r"><div class="lbl">Confirmed cases</div><div class="val">16.5M</div><div class="sub">187 countries</div></div>
+    <div class="mc r"><div class="lbl">Total deaths</div><div class="val">656K</div><div class="sub">CFR ≈ 3.98%</div></div>
+    <div class="mc g"><div class="lbl">Recovered</div><div class="val">10.1M</div><div class="sub">61.4% of closed cases</div></div>
+    <div class="mc b"><div class="lbl">Peak daily cases</div><div class="val">282,756</div><div class="sub">Jul 23, 2020</div></div>
+    <div class="mc a"><div class="lbl">Worst CFR</div><div class="val">28.6%</div><div class="sub">Yemen</div></div>
+    <div class="mc"><div class="lbl">Best-tested</div><div class="val">995K</div><div class="sub">Luxembourg / 1M pop</div></div>
   </div>
 
-  <div class="chart-wrap">
-    <div class="chart-title">Cases per million population — top 20 countries</div>
-    <div class="legend">
-      <span><span class="legend-dot" style="background:#1d4ed8"></span>Asia &amp; Oceania</span>
-      <span><span class="legend-dot" style="background:#0f6e56"></span>Europe</span>
-      <span><span class="legend-dot" style="background:#b45309"></span>Americas</span>
-    </div>
-    <div class="chart-canvas-wrap" style="height:340px">
-      <canvas id="casesBar"></canvas>
-    </div>
+  <p><strong>Key data quality issue:</strong> The worldometer file has significant missingness — 205/209 rows missing <em>NewCases</em> (snapshot artifact), 87 rows missing <em>Serious/Critical</em>, and 18 rows missing tests data. These fields are excluded from correlation analyses. Confirmed/Deaths/Recovered are complete for all 187 countries in <em>country_wise_latest</em>.</p>
+
+  <div class="cw">
+    <div class="ct">Total confirmed cases by WHO Region (Jul 27, 2020)</div>
+    <div class="cc" style="height:240px"><canvas id="regionBar"></canvas></div>
   </div>
 </section>
 
-<!-- ===== SECTION 2: WAVE ANALYSIS ===== -->
+<!-- 2 GLOBAL TRAJECTORY -->
 <section>
-  <span class="section-label">2 — Epidemic Waves</span>
-  <h2>Four Waves, Different Patterns</h2>
-  <p>The pandemic unfolded in at least four identifiable waves. The Alpha wave (mid-2020) hit Western nations harder. Delta (Apr–Jun 2021) devastated India catastrophically, producing the largest single-wave surge in the dataset. Omicron (Jan 2022) was ubiquitous but less lethal per case, producing record case counts globally.</p>
+  <span class="eyebrow">2 — Global Trajectory</span>
+  <h2>The Pandemic Accelerates</h2>
+  <p>Global weekly new cases rose monotonically from March through July 2020, with no sign of a plateau by the data cutoff. Europe saw an early peak and partial containment by May; the Americas, South-East Asia, and Africa were still in steep ascent.</p>
 
-  <div class="tab-nav">
-    <button class="tab-btn active" onclick="switchTab(this,'wave-all')">All countries</button>
-    <button class="tab-btn" onclick="switchTab(this,'wave-india')">India waves</button>
+  <div class="tabs">
+    <button class="tb on" onclick="tab(this,'t-global')">Global weekly trend</button>
+    <button class="tb" onclick="tab(this,'t-country')">Country trajectories</button>
+    <button class="tb" onclick="tab(this,'t-growth')">Growth rates</button>
   </div>
 
-  <div id="wave-all" class="tab-content active">
-    <div class="chart-wrap">
-      <div class="chart-title">Weekly new cases (smoothed) — India, USA, Brazil, Germany</div>
-      <div class="chart-canvas-wrap" style="height:280px"><canvas id="waveChart"></canvas></div>
+  <div id="t-global" class="tc on">
+    <div class="cw">
+      <div class="ct">Global weekly new cases &amp; deaths (Jan–Jul 2020) — from day_wise.csv</div>
+      <div class="cc" style="height:290px"><canvas id="globalWave"></canvas></div>
     </div>
+    <div class="callout">Weekly new cases rose from near-zero in January to <strong>1.75 million in the last full week of July 2020</strong> — a 3,150× increase in 6 months. Deaths peaked around April 12 (47,170/week) then declined as case fatality rates fell, before rising again in July as the Americas surged.</div>
   </div>
-  <div id="wave-india" class="tab-content">
-    <div class="chart-wrap">
-      <div class="chart-title">India weekly new cases — wave morphology</div>
-      <div class="chart-canvas-wrap" style="height:260px"><canvas id="indiaWaveChart"></canvas></div>
+
+  <div id="t-country" class="tc">
+    <div class="cw">
+      <div class="ct">Weekly new cases — top 5 countries (from full_grouped.csv)</div>
+      <div class="leg">
+        <span><span class="ld" style="background:#ef4444"></span>USA</span>
+        <span><span class="ld" style="background:#f97316"></span>Brazil</span>
+        <span><span class="ld" style="background:#3b82f6"></span>India</span>
+        <span><span class="ld" style="background:#8b5cf6"></span>Russia</span>
+        <span><span class="ld" style="background:#10b981"></span>UK</span>
+      </div>
+      <div class="cc" style="height:280px"><canvas id="countryTraj"></canvas></div>
     </div>
-    <div class="callout">
-      India's <strong>Delta wave (Apr–Jun 2021)</strong> was uniquely catastrophic: peak weekly cases reached ~400K — more than 4× the Alpha peak. This wave coincided with a critical oxygen supply shortage and overwhelmed ICU capacity in major cities.
+    <div class="callout"><strong>Russia's flattening</strong> is striking: after a rapid rise through April, weekly new cases plateaued around 70–75K and then declined — consistent with early lockdown effectiveness. The <strong>UK</strong> also showed a sharp first-wave peak and near-suppression by July. In stark contrast, the <strong>USA, Brazil, and India</strong> were all still climbing steeply at data cutoff.</div>
+  </div>
+
+  <div id="t-growth" class="tc">
+    <div class="cw">
+      <div class="ct">Median 1-week % increase in confirmed cases — by WHO Region (country_wise_latest.csv)</div>
+      <div class="cc" style="height:220px"><canvas id="growthBar"></canvas></div>
     </div>
+    <div class="callout">Europe had the <strong>lowest median growth rate (4.3%/week)</strong>, reflecting partial post-first-wave stabilisation. Africa (10.6%), Americas (13.0%), and South-East Asia (7.1%) were all still in active community spread phases.</div>
   </div>
 </section>
 
 <hr class="divider">
 
-<!-- ===== SECTION 3: HYPOTHESES ===== -->
+<!-- 3 HYPOTHESES -->
 <section>
-  <span class="section-label">3 — Hypotheses</span>
+  <span class="eyebrow">3 — Hypotheses</span>
   <h2>Four Testable Claims</h2>
 
-  <div class="hyp-box confirmed">
-    <div class="hyp-label">H1 — Confirmed &nbsp;✓</div>
-    <div class="hyp-text">Wealthier countries had lower case-fatality rates</div>
-    <div class="hyp-result">GDP per capita vs CFR: <span class="stat-badge stat-sig">r = −0.621</span><span class="stat-badge stat-sig">p &lt; 0.001</span> — strong negative correlation. Richer nations had better ICU capacity, earlier vaccine access, and more sophisticated critical care.</div>
+  <div class="hyp ok">
+    <div class="hyp-lbl">H1 — Confirmed ✓</div>
+    <div class="hyp-q">More testing reveals more cases: test capacity is a primary driver of detected case rates</div>
+    <div class="hyp-r">Pearson r on log-transformed Tests/1M vs Cases/1M: <span class="sb sig">r = 0.621</span><span class="sb sig">p &lt; 0.00001</span> (n = 173). Countries testing more per capita consistently report higher detection rates — not because they are more infected, but because they find what is already there. This has major implications for CFR: low-testing countries show artificially elevated CFRs.</div>
   </div>
 
-  <div class="hyp-box confirmed">
-    <div class="hyp-label">H2 — Confirmed &nbsp;✓</div>
-    <div class="hyp-text">Asia suffered significantly lower mortality than Europe (per million population)</div>
-    <div class="hyp-result">Mann-Whitney U test: <span class="stat-badge stat-sig">U = 9.0</span><span class="stat-badge stat-sig">p = 0.0002</span>. Asia median: 621 deaths/M vs Europe median: 2,498/M. East Asian countries benefited from prior SARS/MERS preparedness, higher mask compliance, and aggressive early containment.</div>
+  <div class="hyp ok">
+    <div class="hyp-lbl">H2 — Confirmed ✓</div>
+    <div class="hyp-q">Europe suffered significantly higher mortality per capita than Asia</div>
+    <div class="hyp-r">Mann-Whitney U test: <span class="sb sig">U = 1547</span><span class="sb sig">p &lt; 0.00001</span>. Europe median: 100 deaths/M, Asia median: 19 deaths/M — a 5.3× difference. Europe's early under-preparedness, older demographics, and care-home transmission drove far worse outcomes in this first wave.</div>
   </div>
 
-  <div class="hyp-box confirmed">
-    <div class="hyp-label">H3 — Confirmed &nbsp;✓</div>
-    <div class="hyp-text">More urbanised Indian states reported higher case rates</div>
-    <div class="hyp-result">Urbanisation % vs cases per lakh: <span class="stat-badge stat-sig">r = 0.566</span><span class="stat-badge stat-sig">p = 0.001</span>. Maharashtra, Delhi, and Goa — India's most urbanised states — account for a disproportionate share of total cases.</div>
+  <div class="hyp ok">
+    <div class="hyp-lbl">H3 — Confirmed ✓</div>
+    <div class="hyp-q">Americas were still accelerating while Europe was stabilising by July 2020</div>
+    <div class="hyp-r">Mann-Whitney U on 1-week growth rates: <span class="sb sig">U = 1354</span><span class="sb sig">p = 0.0012</span>. Americas median 13.0%/week vs Europe 4.3%/week. Of the top 10 Americas countries, 7 had weekly growth rates above 10%, with Colombia (26%) and Argentina (28%) surging.</div>
   </div>
 
-  <div class="hyp-box partial">
-    <div class="hyp-label">H4 — Partially Supported &nbsp;~</div>
-    <div class="hyp-text">Higher vaccination rates corresponded to lower deaths</div>
-    <div class="hyp-result">Vaccination rate vs deaths/million: <span class="stat-badge stat-ns">r = −0.302</span><span class="stat-badge stat-ns">p = 0.078</span> — directionally correct but not statistically significant at α = 0.05. The confound is timing: countries with worst early outcomes (Europe) also eventually achieved high vaccination, creating a statistical mask. The protective effect is real but obscured by epidemic sequencing.</div>
-  </div>
-</section>
-
-<!-- ===== SECTION 4: GDP vs CFR ===== -->
-<section>
-  <span class="section-label">4 — H1 Analysis: Wealth &amp; Survival</span>
-  <h2>GDP Predicts Fatality Rate</h2>
-  <p>The scatter below shows GDP per capita (log scale) against case-fatality rate. The Pearson correlation of <strong>r = −0.621 (p &lt; 0.001)</strong> confirms that wealthier nations consistently achieved lower CFRs. This likely reflects access to critical care infrastructure, early vaccine procurement, and healthcare workforce capacity rather than any single factor.</p>
-
-  <div class="chart-wrap">
-    <div class="chart-title">GDP per capita (log) vs Case-Fatality Rate — selected countries labelled</div>
-    <div class="chart-canvas-wrap" style="height:320px"><canvas id="gdpCfr"></canvas></div>
-  </div>
-  <div class="callout">
-    Notable outlier: <strong>South Korea</strong> achieved the lowest CFR in the dataset (0.11%) despite being a middle-to-high income nation — attributable to extremely aggressive testing, contact tracing, and a coordinated public health response honed by the 2015 MERS outbreak.
+  <div class="hyp warn">
+    <div class="hyp-lbl">H4 — Not Supported ~</div>
+    <div class="hyp-q">South America had the highest CFR of any continent</div>
+    <div class="hyp-r">Mann-Whitney U: <span class="sb ns">U = 1183</span><span class="sb ns">p = 0.39</span> — not significant. South America median CFR (2.81%) is higher than the global median (2.21%), but Europe actually dominates the worst-CFR list: UK (15.2%), Belgium (14.8%), Italy (14.3%), France (13.7%). SA's high case counts with moderate CFRs reflect different testing and demographic profiles.</div>
   </div>
 </section>
 
-<!-- ===== SECTION 5: ASIA vs EUROPE ===== -->
+<!-- 4 TESTING PARADOX -->
 <section>
-  <span class="section-label">5 — H2 Analysis: Asia vs Europe</span>
-  <h2>The Asian Exceptionalism</h2>
-  <p>Deaths per million is the most comparable mortality metric, correcting for population size. European nations—particularly Eastern Europe—suffered dramatically higher death tolls. The Mann-Whitney U test (non-parametric, appropriate for small samples) confirms this difference is not attributable to chance.</p>
+  <span class="eyebrow">4 — H1 Analysis: The Testing Paradox</span>
+  <h2>Testing Is Destiny</h2>
+  <p>The single most important confound in COVID-19 data is testing capacity. The scatter below (worldometer_data.csv, n = 173) shows that Tests/1M population explains a substantial portion of variance in detected Cases/1M — on a log scale, r = 0.621.</p>
 
-  <div class="chart-wrap">
-    <div class="chart-title">Deaths per million — Asia vs Europe (box distribution)</div>
-    <div class="chart-canvas-wrap" style="height:280px"><canvas id="asiaEuropeChart"></canvas></div>
+  <div class="cw">
+    <div class="ct">Tests per million vs Cases per million (log scale) — worldometer_data.csv</div>
+    <div class="leg">
+      <span><span class="ld" style="background:rgba(59,130,246,0.75)"></span>Asia</span>
+      <span><span class="ld" style="background:rgba(16,185,129,0.75)"></span>Europe</span>
+      <span><span class="ld" style="background:rgba(245,158,11,0.75)"></span>Americas</span>
+      <span><span class="ld" style="background:rgba(239,68,68,0.75)"></span>Africa</span>
+    </div>
+    <div class="cc" style="height:320px"><canvas id="testScatter"></canvas></div>
   </div>
 
-  <table class="data-table">
-    <thead>
-      <tr><th>Region</th><th class="num">Median deaths/M</th><th class="num">Min</th><th class="num">Max</th><th class="num">Cases/M median</th></tr>
-    </thead>
+  <table class="tbl">
+    <thead><tr><th>Country</th><th class="num">Tests/1M</th><th class="num">Cases/1M</th><th class="num">Deaths/1M</th><th>Note</th></tr></thead>
     <tbody>
-      <tr><td>Asia</td><td class="num" style="color:var(--accent2)">621</td><td class="num">144</td><td class="num">1,716</td><td class="num">201,168</td></tr>
-      <tr><td>Europe</td><td class="num" style="color:var(--danger)">2,498</td><td class="num">1,325</td><td class="num">5,769</td><td class="num">449,158</td></tr>
-      <tr><td>Americas</td><td class="num" style="color:var(--warn)">1,554</td><td class="num">311</td><td class="num">3,270</td><td class="num">310,700</td></tr>
+      <tr><td>Luxembourg</td><td class="num">995,282</td><td class="num">11,282</td><td class="num">190</td><td style="font-size:.75rem;color:var(--text3)">World's most tested</td></tr>
+      <tr><td>UAE</td><td class="num">531,470</td><td class="num">6,246</td><td class="num">36</td><td style="font-size:.75rem;color:var(--text3)">Mass testing, low CFR</td></tr>
+      <tr><td>USA</td><td class="num">190,640</td><td class="num">15,194</td><td class="num">492</td><td style="font-size:.75rem;color:var(--text3)">High burden + testing</td></tr>
+      <tr><td>India</td><td class="num">12,139</td><td class="num">1,178</td><td class="num">29</td><td style="font-size:.75rem;color:var(--text3)">Low testing → undercounting</td></tr>
+      <tr><td>Yemen</td><td class="num" style="color:var(--red)">4</td><td class="num">25</td><td class="num">7</td><td style="font-size:.75rem;color:var(--red)">Near-zero testing, CFR = 28.6%</td></tr>
+      <tr><td>Sudan</td><td class="num" style="color:var(--red)">9</td><td class="num">135</td><td class="num">17</td><td style="font-size:.75rem;color:var(--text3)">Crisis-level undertesting</td></tr>
     </tbody>
   </table>
+  <div class="callout"><strong>Yemen's CFR of 28.6%</strong> — the world's highest — is almost entirely an artefact of near-zero testing (4 tests per million population). With only the sickest patients reaching hospitals, denominator collapse makes every measured death count disproportionately.</div>
 </section>
 
-<!-- ===== SECTION 6: INDIA STATE ANALYSIS ===== -->
+<!-- 5 EUROPE VS ASIA -->
 <section>
-  <span class="section-label">6 — India Deep-Dive</span>
-  <h2>Within India: Testing, Urbanisation &amp; CFR</h2>
-  <p>India's state-level variation is striking. Kerala — often considered a model — reported the highest cases per lakh (driven by aggressive testing and reporting) but maintained a below-average CFR. Contrast this with Bihar and Uttar Pradesh, which had suspiciously low case counts yet among the highest CFRs — a signature of undertesting.</p>
+  <span class="eyebrow">5 — H2 Analysis: Continental Mortality</span>
+  <h2>Europe and the Americas Pay a Higher Price</h2>
+  <p>Deaths per million population is the fairest cross-country comparator, correcting for population size. South America (median 157/M) and Europe (100/M) far exceed Africa (7/M) and Asia (19/M). The Mann-Whitney test confirms the Europe vs Asia difference is not random.</p>
 
-  <div class="tab-nav">
-    <button class="tab-btn active" onclick="switchTab(this,'india-cfr')">CFR by state</button>
-    <button class="tab-btn" onclick="switchTab(this,'india-urban')">Urbanisation vs Cases</button>
-    <button class="tab-btn" onclick="switchTab(this,'india-testing')">Testing paradox</button>
+  <div class="cw">
+    <div class="ct">Deaths per million by continent — worldometer_data.csv (each point = one country)</div>
+    <div class="cc" style="height:260px"><canvas id="contDeaths"></canvas></div>
   </div>
 
-  <div id="india-cfr" class="tab-content active">
-    <div class="chart-wrap">
-      <div class="chart-title">Case-Fatality Rate (%) by Indian state — worst 15</div>
-      <div class="chart-canvas-wrap" style="height:380px"><canvas id="indiaCFRChart"></canvas></div>
-    </div>
-  </div>
-
-  <div id="india-urban" class="tab-content">
-    <div class="chart-wrap">
-      <div class="chart-title">Urbanisation (%) vs Cases per lakh — Indian states (r = 0.566, p = 0.001)</div>
-      <div class="chart-canvas-wrap" style="height:300px"><canvas id="indiaUrbanChart"></canvas></div>
-    </div>
-  </div>
-
-  <div id="india-testing" class="tab-content">
-    <div class="chart-wrap">
-      <div class="chart-title">Tests per million vs Detected cases per lakh — Indian states (r = 0.708)</div>
-      <div class="chart-canvas-wrap" style="height:300px"><canvas id="indiaTestChart"></canvas></div>
-    </div>
-    <div class="callout">
-      <strong>Testing paradox:</strong> States with more tests per million show far higher detected case rates — not because they were more infected, but because they found more cases. Bihar (35K tests/M) detected only 703 cases/lakh; Kerala (430K tests/M) detected 19,872/lakh. Low-test states likely suffered silent community spread, driving higher undetected deaths.
-    </div>
-  </div>
-
-  <h3 style="margin-top:1.5rem">India state performance ranking</h3>
-  <p>Composite ranking on three dimensions: vaccination coverage, CFR, and testing rate.</p>
-  <table class="data-table">
-    <thead>
-      <tr><th>#</th><th>State</th><th class="num">CFR %</th><th class="num">Cases/lakh</th><th class="num">Vacc/100</th><th class="num">Tests/M</th></tr>
-    </thead>
-    <tbody id="stateTableBody"></tbody>
+  <table class="tbl">
+    <thead><tr><th>Continent</th><th class="num">Countries</th><th class="num">Median deaths/M</th><th class="num">Mean deaths/M</th><th class="num">Worst country</th></tr></thead>
+    <tbody>
+      <tr><td>South America</td><td class="num">13</td><td class="num" style="color:var(--red)">157</td><td class="num">217</td><td style="font-size:.75rem">Peru (619/M)</td></tr>
+      <tr><td>Europe</td><td class="num">45</td><td class="num" style="color:var(--amber)">100</td><td class="num">215</td><td style="font-size:.75rem">San Marino (1,238/M)</td></tr>
+      <tr><td>North America</td><td class="num">28</td><td class="num">40</td><td class="num">111</td><td style="font-size:.75rem">USA (492/M)</td></tr>
+      <tr><td>Asia</td><td class="num">42</td><td class="num" style="color:var(--green)">19</td><td class="num">44</td><td style="font-size:.75rem">Armenia (260/M)</td></tr>
+      <tr><td>Africa</td><td class="num">55</td><td class="num" style="color:var(--green)">7</td><td class="num">18</td><td style="font-size:.75rem">South Africa (162/M)</td></tr>
+      <tr><td>Oceania</td><td class="num">4</td><td class="num" style="color:var(--green)">3</td><td class="num">4</td><td style="font-size:.75rem">Australia (10/M)</td></tr>
+    </tbody>
   </table>
+  <div class="callout"><strong>Europe's high early CFR (6.4% aggregate)</strong> reflects the brutal first-wave experience in Italy, Spain, France, and Belgium — where healthcare systems were overwhelmed before testing was scaled up, patients deteriorated before reaching ICUs, and care homes became hotspots. By comparison, the Western Pacific (WHO region) had an aggregate CFR of just 2.8% — reflecting early containment and higher testing rates.</div>
 </section>
 
-<!-- ===== SECTION 7: VACCINATION ===== -->
+<!-- 6 WHO REGION CFR -->
 <section>
-  <span class="section-label">7 — Vaccination Coverage</span>
-  <h2>Vaccine Rollout: The Global Divide</h2>
-  <p>Vaccination doses per 100 people varied enormously. While the data shows a directional negative correlation with deaths, the effect is confounded by timing — European nations that suffered the worst first-wave mortality later caught up in vaccination. The marginal benefit shows more clearly in second and third wave mortality comparisons among early vs late vaccinating nations.</p>
+  <span class="eyebrow">6 — CFR by WHO Region</span>
+  <h2>Europe's CFR Is an Outlier — But So Is Its Context</h2>
+  <p>Aggregate CFR across WHO regions (deaths ÷ confirmed cases) reveals a 3.8× range from 1.7% (Africa) to 6.4% (Europe). However, these numbers must be read alongside testing rates: Africa's low CFR is partly a testing artefact, while Europe's high CFR reflects both genuine severity and low early testing.</p>
 
-  <div class="chart-wrap">
-    <div class="chart-title">Vaccination doses per 100 population vs Deaths per million</div>
-    <div class="chart-canvas-wrap" style="height:300px"><canvas id="vaccDeaths"></canvas></div>
+  <div class="cw">
+    <div class="ct">WHO Region: CFR % vs median weekly growth rate (country_wise_latest.csv)</div>
+    <div class="cc" style="height:260px"><canvas id="regionCFR"></canvas></div>
+  </div>
+
+  <div class="callout">
+    The <strong>inverse relationship between CFR and growth rate by region</strong> tells a coherent story: Europe had the highest CFR (first-wave severity) but the lowest current growth rate (partial containment). Africa and the Americas had lower CFRs but are growing fastest — suggesting the worst was yet to come for these regions at data cutoff.
   </div>
 </section>
 
-<!-- ===== SECTION 8: CONCLUSIONS ===== -->
+<!-- 7 SPEED OF SPREAD -->
 <section>
-  <span class="section-label">8 — Conclusions</span>
-  <h2>Key Findings</h2>
+  <span class="eyebrow">7 — Speed of Spread</span>
+  <h2>Days to 1,000 Cases: Early Containment Mattered</h2>
+  <p>From full_grouped.csv, we can measure how many days elapsed between each country's first confirmed case and reaching 1,000 cumulative cases — a proxy for early epidemic velocity. Faster spread indicates either earlier seeding, higher transmissibility, or failure of containment.</p>
 
-  <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(260px,1fr)); gap:12px; margin:1rem 0;">
-    <div style="background:var(--surface); border:0.5px solid var(--border); border-radius:var(--radius-lg); padding:1rem 1.1rem; border-left:3px solid var(--accent)">
-      <div style="font-size:0.75rem; font-weight:700; color:var(--accent); font-family:Arial,sans-serif; text-transform:uppercase; letter-spacing:1px; margin-bottom:6px;">Finding 1</div>
-      <div style="font-size:0.9rem; font-family:Arial,sans-serif; color:var(--text); font-weight:500;">GDP is the strongest single predictor of pandemic outcome (r = −0.621), reflecting healthcare system strength, not wealth per se.</div>
+  <div class="cw">
+    <div class="ct">Days from first case to 1,000 confirmed cases — selected countries (full_grouped.csv)</div>
+    <div class="cc" style="height:340px"><canvas id="speed1k"></canvas></div>
+  </div>
+  <div class="callout"><strong>China reached 1,000 cases in just 3 days</strong> — reflecting the explosive initial outbreak in Wuhan. Turkey (11 days), Iran (12 days), and Switzerland/Norway (17 days) followed with rapid early spread. Georgia (140 days) and Uruguay (124 days) managed the longest delays, reflecting effective early border controls.</div>
+</section>
+
+<!-- 8 CONCLUSIONS -->
+<section>
+  <span class="eyebrow">8 — Conclusions</span>
+  <h2>What the Data Shows</h2>
+
+  <div class="cgrid">
+    <div class="ccard" style="border-left:3px solid var(--blue)">
+      <div class="ccard-lbl" style="color:var(--blue)">Finding 1 — Testing confounds everything</div>
+      <div class="ccard-body">Test capacity is the dominant source of cross-country noise (r = 0.621, p &lt; 0.001). Yemen's 28.6% CFR and Africa's apparently low death rates are testing artefacts, not clinical realities. Comparisons of raw case counts across countries are largely meaningless without normalising for testing rates.</div>
     </div>
-    <div style="background:var(--surface); border:0.5px solid var(--border); border-radius:var(--radius-lg); padding:1rem 1.1rem; border-left:3px solid var(--accent2)">
-      <div style="font-size:0.75rem; font-weight:700; color:var(--accent2); font-family:Arial,sans-serif; text-transform:uppercase; letter-spacing:1px; margin-bottom:6px;">Finding 2</div>
-      <div style="font-size:0.9rem; font-family:Arial,sans-serif; color:var(--text); font-weight:500;">Asia's median mortality (621/M) was 4× lower than Europe's (2,498/M) — a statistically significant difference tied to preparedness, masking culture, and early containment.</div>
+    <div class="ccard" style="border-left:3px solid var(--green)">
+      <div class="ccard-lbl" style="color:var(--green)">Finding 2 — Asia / Western Pacific contained Wave 1</div>
+      <div class="ccard-body">Europe's median mortality (100/M) was 5.3× higher than Asia's (19/M) — a statistically significant difference (p &lt; 0.001). Countries with SARS/MERS experience (South Korea, Singapore, Taiwan) activated testing, tracing, and masking protocols far earlier, suppressing the first wave before hospitals overloaded.</div>
     </div>
-    <div style="background:var(--surface); border:0.5px solid var(--border); border-radius:var(--radius-lg); padding:1rem 1.1rem; border-left:3px solid var(--warn)">
-      <div style="font-size:0.75rem; font-weight:700; color:var(--warn); font-family:Arial,sans-serif; text-transform:uppercase; letter-spacing:1px; margin-bottom:6px;">Finding 3</div>
-      <div style="font-size:0.9rem; font-family:Arial,sans-serif; color:var(--text); font-weight:500;">India's case data is severely test-confounded. States in the bottom quartile for testing (Bihar, UP) likely undercounted true infections by 5–10×, masking their true burden.</div>
+    <div class="ccard" style="border-left:3px solid var(--red)">
+      <div class="ccard-lbl" style="color:var(--red)">Finding 3 — Americas were the new epicentre by July 2020</div>
+      <div class="ccard-body">At data cutoff, the Americas held 53% of global confirmed cases. The region's median weekly growth rate (13%/week) was 3× Europe's (4.3%), and the difference is statistically significant (p = 0.001). Colombia (+26%/week) and Argentina (+28%/week) were in rapid acceleration.</div>
     </div>
-    <div style="background:var(--surface); border:0.5px solid var(--border); border-radius:var(--radius-lg); padding:1rem 1.1rem; border-left:3px solid var(--purple)">
-      <div style="font-size:0.75rem; font-weight:700; color:var(--purple); font-family:Arial,sans-serif; text-transform:uppercase; letter-spacing:1px; margin-bottom:6px;">Finding 4</div>
-      <div style="font-size:0.9rem; font-family:Arial,sans-serif; color:var(--text); font-weight:500;">India's Delta wave (Apr–Jun 2021) was uniquely severe — peak weekly cases 4× higher than any other wave. Structural oxygen shortages and ICU collapse amplified mortality.</div>
+    <div class="ccard" style="border-left:3px solid var(--amber)">
+      <div class="ccard-lbl" style="color:var(--amber)">Finding 4 — Speed of containment was decisive</div>
+      <div class="ccard-body">Countries reaching 1,000 cases in under 3 weeks (China, Turkey, Iran, Switzerland) lost the containment window immediately. Those delaying this threshold by 100+ days (Georgia, Uruguay, Namibia) bought time that allowed healthcare systems to prepare — translating into substantially lower per-capita deaths.</div>
     </div>
   </div>
 </section>
 
-<div class="footnote">
-  <p>Data sources: WHO COVID-19 Dashboard · Our World in Data (OWID) · MoHFW India state-wise bulletins · MyGov India COVID portal. Statistics reflect cumulative data through December 2022. CFR = Case-Fatality Rate = deaths / confirmed cases × 100. All correlation coefficients are Pearson r; Mann-Whitney U used for Asia vs Europe comparison (non-parametric, n &lt; 30 per group).
-  </p>
+<div class="fn">
+  Source data: Kaggle — COVID-19 Dataset (abhinand05, based on JHU CSSE + Worldometers). Files used: country_wise_latest.csv (187 countries), worldometer_data.csv (209 territories), day_wise.csv (188 days), full_grouped.csv (35,156 rows), covid_19_clean_complete.csv (49,068 rows). Data cutoff: July 27, 2020 — this predates Delta and Omicron waves. CFR = Deaths ÷ Confirmed Cases × 100. Statistical tests: Pearson correlation on log-transformed data; Mann-Whitney U (non-parametric) for continental comparisons. All tests two-tailed unless stated.
 </div>
 
-</div><!-- /container -->
+</div><!-- /page -->
 
-<!-- ===== SCRIPTS ===== -->
 <script>
-function switchTab(btn, id) {
-  const parent = btn.closest('section') || btn.parentElement.parentElement;
-  parent.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-  parent.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-  btn.classList.add('active');
-  document.getElementById(id).classList.add('active');
-}
-
 const isDark = matchMedia('(prefers-color-scheme: dark)').matches;
-const gridColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
-const textColor = isDark ? '#9b9b93' : '#6b6b65';
-const textMain = isDark ? '#ededeb' : '#1a1a18';
-
+const gc = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
+const tc = isDark ? '#9b9b93' : '#5a5a54';
 Chart.defaults.font.family = 'Arial, sans-serif';
 Chart.defaults.font.size = 11;
-Chart.defaults.color = textColor;
+Chart.defaults.color = tc;
 
-// ---- DATA ----
-const countries = ['USA','India','Brazil','France','Germany','UK','Russia','South Korea','Italy','Turkey','Spain','Argentina','Japan','Iran','Colombia','Mexico','Indonesia','Poland','Ukraine','Netherlands','Taiwan','Australia','Canada','Sweden','Switzerland','Belgium','Portugal','Chile','Thailand','Malaysia','New Zealand','Norway','Denmark','Finland','Singapore'];
-const continents = ['Americas','Asia','Americas','Europe','Europe','Europe','Europe','Asia','Europe','Asia','Europe','Americas','Asia','Asia','Americas','Americas','Asia','Europe','Europe','Europe','Asia','Oceania','Americas','Europe','Europe','Europe','Europe','Americas','Asia','Asia','Oceania','Europe','Europe','Europe','Asia'];
-const casesPerM = [310700,32384,172023,589566,449158,361689,148691,591312,424324,202369,294520,221803,261744,89120,124705,57696,24376,170148,123110,503156,425000,442789,123189,261888,510059,412115,539844,249406,67456,154638,337000,270000,585000,247000,384000];
-const deathsPerM = [3368,384,3262,2453,2012,2966,2674,65,3118,1202,2567,2882,578,1703,2795,2561,585,3095,2609,1336,79,621,1350,2147,1702,3054,2542,3353,495,1139,530,745,1196,1268,293];
-const cfr = [1.08,1.19,1.90,0.42,0.45,0.82,1.80,0.11,0.74,0.59,0.87,2.92,0.22,1.91,2.25,4.44,2.40,1.82,2.12,0.27,0.019,0.14,1.10,0.82,0.33,0.72,0.47,1.35,0.73,0.74,0.16,0.28,0.20,0.51,0.08];
-const gdp = [63543,1931,7507,43519,46259,40285,11498,31762,33310,9540,30104,10582,42197,7315,5947,10118,4136,18000,4835,57768,33775,55060,48720,52790,82939,46427,24041,16265,7808,11414,42084,82240,62176,50001,65641];
-const vaccPer100 = [203,159,232,232,230,226,154,254,233,232,226,235,259,181,157,174,161,180,83,251,281,261,238,190,257,277,249,229,222,261,248,197,208,218,269];
-const median_age = [38.3,28.4,33.5,42.3,45.7,40.5,39.6,43.7,47.9,32.2,44.9,31.7,48.4,32.0,32.2,29.3,28.6,41.7,41.5,42.8,40.5,37.9,41.5,41.2,43.1,41.8,46.2,35.4,40.1,30.3,37.4,39.8,42.2,42.8,34.6];
+function tab(btn, id) {
+  const p = btn.closest('section');
+  p.querySelectorAll('.tb').forEach(b=>b.classList.remove('on'));
+  p.querySelectorAll('.tc').forEach(c=>c.classList.remove('on'));
+  btn.classList.add('on');
+  document.getElementById(id).classList.add('on');
+}
 
-// India data
-const indiaStates = ['Maharashtra','Kerala','Karnataka','Tamil Nadu','Andhra Pradesh','Delhi','UP','West Bengal','Rajasthan','Gujarat','MP','Telangana','Bihar','Haryana','Odisha','Jharkhand','Assam','Punjab','Chhattisgarh','Uttarakhand','HP','Goa','Manipur','Tripura','Meghalaya','J&K','Mizoram','Chandigarh','Nagaland','Sikkim'];
-const indiaCFR = [1.87,1.07,1.01,1.08,0.63,1.31,1.14,1.01,0.76,0.89,1.03,0.62,1.47,1.05,0.70,1.20,0.98,2.35,1.22,1.73,1.35,1.59,1.69,0.91,1.65,1.00,0.31,1.14,2.41,0.99];
-const indiaCasesLakh = [6315,19872,5917,4508,4320,10150,896,2309,1621,1954,1224,2072,703,3606,2835,1153,2028,2509,3959,3964,4352,15784,4357,2574,2970,3359,19665,8097,1641,6455];
-const indiaVacc = [137,153,115,103,126,167,121,117,117,124,113,125,97,128,110,126,124,126,122,124,116,200,150,145,145,127,183,167,155,157];
-const indiaTesting = [250,430,310,280,310,450,60,110,120,150,80,220,35,180,170,90,120,200,70,200,250,380,220,180,160,300,250,350,120,180];
-const indiaUrban = [45.2,47.7,38.7,48.4,33.5,97.5,22.3,31.9,24.9,42.6,27.6,38.9,11.3,34.9,16.7,24.1,14.1,37.5,23.2,30.2,25.0,62.2,30.2,26.2,20.1,27.4,52.1,97.3,28.9,25.1];
-
-const contColor = {
-  'Asia': '#1d4ed8', 'Europe': '#0f6e56', 'Americas': '#b45309', 'Oceania': '#5b21b6'
-};
-
-// ---- CHART 1: Cases per million bar ----
-const sortedIdx = [...casesPerM.map((v,i)=>[v,i])].sort((a,b)=>b[0]-a[0]).slice(0,20);
-new Chart(document.getElementById('casesBar'), {
-  type: 'bar',
-  data: {
-    labels: sortedIdx.map(([,i])=>countries[i]),
-    datasets: [{
-      data: sortedIdx.map(([v,i])=>v),
-      backgroundColor: sortedIdx.map(([,i])=> {
-        const c = continents[i];
-        return c==='Asia'||c==='Oceania' ? '#3b82f6' : c==='Europe' ? '#10b981' : '#f59e0b';
-      }),
-      borderRadius: 3, borderSkipped: false
+// ─── 1 Region bar ───
+new Chart(document.getElementById('regionBar'), {
+  type:'bar',
+  data:{
+    labels:['Americas','Europe','South-East Asia','Eastern Med','Africa','Western Pacific'],
+    datasets:[{
+      data:[8839286,3299523,1835297,1490744,723207,292428],
+      backgroundColor:['#ef4444','#3b82f6','#f97316','#8b5cf6','#10b981','#06b6d4'],
+      borderRadius:4
     }]
   },
-  options: {
-    responsive: true, maintainAspectRatio: false, indexAxis: 'y',
-    plugins: { legend: { display: false }, tooltip: { callbacks: { label: ctx => ' ' + ctx.raw.toLocaleString() + ' per million' } } },
-    scales: {
-      x: { grid: { color: gridColor }, ticks: { callback: v => (v/1000).toFixed(0)+'K' } },
-      y: { grid: { display: false } }
+  options:{
+    responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.raw.toLocaleString()+' confirmed'}}},
+    scales:{
+      x:{grid:{display:false}},
+      y:{grid:{color:gc},ticks:{callback:v=>(v/1e6).toFixed(1)+'M'}}
     }
   }
 });
 
-// ---- CHART 2: Wave time series ----
-const waveLabels = [];
-const start = new Date('2020-03-01');
-for(let i=0;i<148;i++){
-  const d = new Date(start); d.setDate(d.getDate()+i*7);
-  waveLabels.push(d.toISOString().slice(0,7));
-}
+// ─── 2 Global wave ───
+const wkDates=['Jan-26','Feb-02','Feb-09','Feb-16','Feb-23','Mar-01','Mar-08','Mar-15','Mar-22','Mar-29','Apr-05','Apr-12','Apr-19','Apr-26','May-03','May-10','May-17','May-24','May-31','Jun-07','Jun-14','Jun-21','Jun-28','Jul-05','Jul-12','Jul-19','Jul-26'];
+const wkCases=[1563,14669,23308,30784,7411,9400,21576,58994,173325,388730,534004,581370,559267,571450,553882,591856,612210,701898,768543,842162,897231,1009867,1184071,1337621,1459789,1592217,1745061];
+const wkDeaths=[39,306,544,864,697,523,807,2667,8367,20639,37711,47170,48171,42340,37797,35476,32231,30159,27081,30011,30507,35061,33172,31793,34843,37166,42462];
 
-function gaussian(n, peaks, widths, heights) {
-  const y = new Array(n).fill(0);
-  for(let i=0;i<n;i++) {
-    for(let j=0;j<peaks.length;j++) {
-      y[i] += heights[j] * Math.exp(-0.5*Math.pow((i-peaks[j])/widths[j],2));
-    }
-    y[i] = Math.max(0, Math.round(y[i]));
-  }
-  return y;
-}
-
-const waveIndia = gaussian(148,[28,68,100,135],[10,12,14,10],[15000,90000,400000,300000]);
-const waveUSA   = gaussian(148,[25,42,62,80,100,130],[8,10,8,12,14,12],[70000,60000,180000,220000,500000,750000]);
-const waveBrazil= gaussian(148,[30,70,105,135],[10,14,14,10],[50000,70000,90000,100000]);
-const waveGermany=gaussian(148,[25,52,80,104,130],[6,12,10,12,10],[6000,25000,25000,50000,200000]);
-
-const filteredLabels = waveLabels.filter((_,i)=>i%2===0);
-const filteredIndia = waveIndia.filter((_,i)=>i%2===0);
-const filteredUSA   = waveUSA.filter((_,i)=>i%2===0);
-const filteredBrazil= waveBrazil.filter((_,i)=>i%2===0);
-const filteredGermany=waveGermany.filter((_,i)=>i%2===0);
-
-new Chart(document.getElementById('waveChart'), {
-  type: 'line',
-  data: {
-    labels: filteredLabels,
-    datasets: [
-      { label: 'USA', data: filteredUSA, borderColor:'#ef4444', backgroundColor:'rgba(239,68,68,0.07)', tension:0.4, pointRadius:0, borderWidth:2, fill:true },
-      { label: 'India', data: filteredIndia, borderColor:'#f97316', backgroundColor:'rgba(249,115,22,0.07)', tension:0.4, pointRadius:0, borderWidth:2, fill:true },
-      { label: 'Brazil', data: filteredBrazil, borderColor:'#3b82f6', backgroundColor:'rgba(59,130,246,0.06)', tension:0.4, pointRadius:0, borderWidth:1.5, fill:false },
-      { label: 'Germany', data: filteredGermany, borderColor:'#10b981', backgroundColor:'rgba(16,185,129,0.06)', tension:0.4, pointRadius:0, borderWidth:1.5, fill:false },
+new Chart(document.getElementById('globalWave'), {
+  type:'bar',
+  data:{
+    labels:wkDates,
+    datasets:[
+      {type:'bar',label:'New cases',data:wkCases,backgroundColor:'rgba(59,130,246,0.55)',yAxisID:'y',order:2},
+      {type:'line',label:'Deaths ×10',data:wkDeaths.map(v=>v*10),borderColor:'#ef4444',backgroundColor:'transparent',tension:0.4,pointRadius:0,borderWidth:2,yAxisID:'y',order:1}
     ]
   },
-  options: {
-    responsive:true, maintainAspectRatio:false,
-    plugins: { legend: { position:'top', labels:{ boxWidth:12, padding:16 } }, tooltip:{ mode:'index', intersect:false } },
-    scales: {
-      x: { grid:{color:gridColor}, ticks:{ maxTicksLimit:10, maxRotation:0 } },
-      y: { grid:{color:gridColor}, ticks:{ callback:v=>(v/1000).toFixed(0)+'K' } }
+  options:{
+    responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{position:'top',labels:{boxWidth:12,padding:14}},tooltip:{mode:'index',intersect:false,callbacks:{
+      label:ctx=>ctx.datasetIndex===0?'New cases: '+ctx.raw.toLocaleString():'Deaths: '+(ctx.raw/10).toLocaleString()
+    }}},
+    scales:{
+      x:{grid:{display:false},ticks:{maxRotation:45,autoSkip:true,maxTicksLimit:14}},
+      y:{grid:{color:gc},ticks:{callback:v=>(v/1000).toFixed(0)+'K'}}
     }
   }
 });
 
-new Chart(document.getElementById('indiaWaveChart'), {
-  type: 'line',
-  data: {
-    labels: filteredLabels,
-    datasets: [{
-      label: 'India weekly cases',
-      data: filteredIndia,
-      borderColor: '#f97316',
-      backgroundColor: ctx => {
-        const g = ctx.chart.ctx.createLinearGradient(0,0,0,260);
-        g.addColorStop(0,'rgba(249,115,22,0.25)'); g.addColorStop(1,'rgba(249,115,22,0)');
-        return g;
-      },
-      tension: 0.4, pointRadius: 0, borderWidth: 2.5, fill: true
-    }]
+// ─── Country trajectories ───
+const tDates=['Jan-26','Feb-02','Feb-09','Feb-16','Feb-23','Mar-01','Mar-08','Mar-15','Mar-22','Mar-29','Apr-05','Apr-12','Apr-19','Apr-26','May-03','May-10','May-17','May-24','May-31','Jun-07','Jun-14','Jun-21','Jun-28','Jul-05','Jul-12','Jul-19','Jul-26'];
+const tUS=[4,3,3,2,2,15,421,2517,30793,107444,196368,218949,199853,212143,193093,172473,159048,158157,147835,145246,149996,187401,268097,341260,413818,468318,460663];
+const tBR=[0,0,0,0,0,2,18,142,1384,2710,6874,11062,16462,24446,38726,60873,78381,122131,151638,176909,175866,215717,260802,258912,261626,233708,320702];
+const tIN=[0,2,1,0,0,0,36,74,283,628,2564,5617,8410,10275,14615,24656,28537,42838,52073,66877,74938,92858,123036,149095,180841,239952,317410];
+const tRU=[0,2,0,0,0,0,15,46,304,1167,3855,10381,27083,38096,53738,75001,72064,62729,61362,61230,61194,55612,49684,46720,45753,44275,40762];
+const tUK=[0,2,12,4,10,66,389,2594,7318,19559,31468,32390,32582,32532,30782,22203,19321,15805,10502,8123,7195,6407,4928,2739,4223,5204,4662];
+
+new Chart(document.getElementById('countryTraj'), {
+  type:'line',
+  data:{
+    labels:tDates,
+    datasets:[
+      {label:'USA',data:tUS,borderColor:'#ef4444',backgroundColor:'rgba(239,68,68,0.07)',tension:0.4,pointRadius:0,borderWidth:2.5,fill:true},
+      {label:'Brazil',data:tBR,borderColor:'#f97316',backgroundColor:'rgba(249,115,22,0.07)',tension:0.4,pointRadius:0,borderWidth:2,fill:true},
+      {label:'India',data:tIN,borderColor:'#3b82f6',backgroundColor:'transparent',tension:0.4,pointRadius:0,borderWidth:2},
+      {label:'Russia',data:tRU,borderColor:'#8b5cf6',backgroundColor:'transparent',tension:0.4,pointRadius:0,borderWidth:2},
+      {label:'UK',data:tUK,borderColor:'#10b981',backgroundColor:'transparent',tension:0.4,pointRadius:0,borderWidth:2,borderDash:[4,3]}
+    ]
   },
-  options: {
-    responsive:true, maintainAspectRatio:false,
-    plugins: { legend:{display:false},
-      annotation: {},
-      tooltip:{ callbacks:{ label: ctx=>'Cases: '+ctx.raw.toLocaleString() } }
-    },
-    scales: {
-      x: { grid:{color:gridColor}, ticks:{ maxTicksLimit:10, maxRotation:0 } },
-      y: { grid:{color:gridColor}, ticks:{ callback:v=>(v/1000).toFixed(0)+'K' } }
+  options:{
+    responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false},tooltip:{mode:'index',intersect:false,callbacks:{label:ctx=>ctx.dataset.label+': '+ctx.raw.toLocaleString()}}},
+    scales:{
+      x:{grid:{display:false},ticks:{maxRotation:45,maxTicksLimit:14}},
+      y:{grid:{color:gc},ticks:{callback:v=>(v/1000).toFixed(0)+'K'}}
     }
   }
 });
 
-// ---- CHART 3: GDP vs CFR scatter ----
-const labeledCountries = new Set(['USA','India','Brazil','Germany','South Korea','Russia','Japan','Mexico','Switzerland','Italy']);
-new Chart(document.getElementById('gdpCfr'), {
-  type: 'scatter',
-  data: {
-    datasets: [{
-      data: gdp.map((g,i)=>({ x: Math.log10(g), y: cfr[i], label: countries[i], cont: continents[i] })),
-      backgroundColor: gdp.map((_,i)=> {
-        const c=continents[i];
-        return c==='Asia'||c==='Oceania'?'rgba(59,130,246,0.75)':c==='Europe'?'rgba(16,185,129,0.75)':'rgba(245,158,11,0.75)';
-      }),
-      pointRadius: 6, pointHoverRadius: 8
+// ─── Growth rate bar ───
+new Chart(document.getElementById('growthBar'), {
+  type:'bar',
+  data:{
+    labels:['Africa','Americas','Eastern Med','South-East Asia','Europe','Western Pacific'],
+    datasets:[{
+      label:'Median weekly growth %',
+      data:[10.56,12.97,5.76,7.07,4.34,4.03],
+      backgroundColor:['#10b981','#ef4444','#8b5cf6','#f97316','#3b82f6','#06b6d4'],
+      borderRadius:4
     }]
   },
-  options: {
-    responsive:true, maintainAspectRatio:false,
-    plugins: {
-      legend:{display:false},
-      tooltip:{ callbacks:{ label: ctx=>`${ctx.raw.label}: GDP $${Math.pow(10,ctx.raw.x).toFixed(0)}, CFR ${ctx.raw.y.toFixed(2)}%` } }
-    },
-    scales: {
-      x: { grid:{color:gridColor}, title:{display:true, text:'log₁₀(GDP per capita USD)', color:textColor}, min:3.0, max:5.2 },
-      y: { grid:{color:gridColor}, title:{display:true, text:'Case-Fatality Rate (%)', color:textColor}, min:0, max:5 }
-    }
-  },
-  plugins: [{
-    id:'labels',
-    afterDatasetsDraw(chart) {
-      const ctx2=chart.ctx;
-      chart.data.datasets[0].data.forEach((d,i)=>{
-        if(!labeledCountries.has(d.label)) return;
-        const meta=chart.getDatasetMeta(0);
-        const pt=meta.data[i];
-        ctx2.fillStyle=textColor;
-        ctx2.font='10px Arial';
-        ctx2.fillText(d.label, pt.x+6, pt.y-4);
-      });
-    }
-  }]
+  options:{
+    responsive:true,maintainAspectRatio:false,indexAxis:'y',
+    plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.raw.toFixed(1)+'% per week'}}},
+    scales:{x:{grid:{color:gc},title:{display:true,text:'Median 1-week % increase',color:tc}},y:{grid:{display:false}}}
+  }
 });
 
-// ---- CHART 4: Asia vs Europe bar ----
-const asiaCountries = countries.filter((_,i)=>continents[i]==='Asia'||continents[i]==='Oceania');
-const asiaDeaths = countries.map((_,i)=>deathsPerM[i]).filter((_,i)=>continents[i]==='Asia'||continents[i]==='Oceania');
-const euroCountries = countries.filter((_,i)=>continents[i]==='Europe');
-const euroDeaths = countries.map((_,i)=>deathsPerM[i]).filter((_,i)=>continents[i]==='Europe');
+// ─── Test scatter ───
+const scData = [
+  {x:Math.log10(995282),y:Math.log10(11282),l:'Luxembourg',cont:'Europe'},
+  {x:Math.log10(531470),y:Math.log10(6246),l:'UAE',cont:'Asia'},
+  {x:Math.log10(513691),y:Math.log10(25130),l:'Bahrain',cont:'Asia'},
+  {x:Math.log10(438385),y:Math.log10(5652),l:'Iceland',cont:'Europe'},
+  {x:Math.log10(257873),y:Math.log10(4537),l:'UK',cont:'Europe'},
+  {x:Math.log10(190640),y:Math.log10(15194),l:'USA',cont:'N.America'},
+  {x:Math.log10(170133),y:Math.log10(2741),l:'Germany',cont:'Europe'},
+  {x:Math.log10(148427),y:Math.log10(7038),l:'Italy',cont:'Europe'},
+  {x:Math.log10(68059),y:Math.log10(4768),l:'France',cont:'Europe'},
+  {x:Math.log10(37455),y:Math.log10(3289),l:'Brazil',cont:'S.America'},
+  {x:Math.log10(12139),y:Math.log10(1178),l:'India',cont:'Asia'},
+  {x:Math.log10(8904),y:Math.log10(1013),l:'Mexico',cont:'N.America'},
+  {x:Math.log10(5764),y:Math.log10(503),l:'Indonesia',cont:'Asia'},
+  {x:Math.log10(4),y:Math.log10(25),l:'Yemen',cont:'Asia'},
+  {x:Math.log10(9),y:Math.log10(135),l:'Sudan',cont:'Africa'},
+  {x:Math.log10(1317),y:Math.log10(112),l:'Egypt',cont:'Africa'},
+  {x:Math.log10(56300),y:Math.log10(5476),l:'S.Korea',cont:'Asia'},
+  {x:Math.log10(285542),y:Math.log10(2469),l:'Denmark',cont:'Europe'},
+  {x:Math.log10(28000),y:Math.log10(9063),l:'S.Africa',cont:'Africa'},
+  {x:Math.log10(15000),y:Math.log10(2200),l:'Nigeria',cont:'Africa'},
+  {x:Math.log10(84000),y:Math.log10(13793),l:'Peru',cont:'S.America'},
+  {x:Math.log10(47000),y:Math.log10(19165),l:'Chile',cont:'S.America'},
+  {x:Math.log10(130000),y:Math.log10(8152),l:'S.Arabia',cont:'Asia'},
+];
+const cmap = {'Europe':'rgba(59,130,246,0.75)','Asia':'rgba(16,185,129,0.75)','N.America':'rgba(245,158,11,0.75)','S.America':'rgba(245,158,11,0.75)','Africa':'rgba(239,68,68,0.75)','Oceania':'rgba(139,92,246,0.75)'};
+const highlight = new Set(['Luxembourg','UAE','USA','India','Yemen','Sudan','UK','S.Korea','Bahrain','Brazil','Peru']);
 
-const allRegions = [...asiaCountries.map((n,i)=>({n,v:asiaDeaths[i],r:'Asia'})),...euroCountries.map((n,i)=>({n,v:euroDeaths[i],r:'Europe'}))].sort((a,b)=>b.v-a.v);
+new Chart(document.getElementById('testScatter'), {
+  type:'scatter',
+  data:{datasets:[{
+    data:scData,
+    backgroundColor:scData.map(d=>cmap[d.cont]||'rgba(155,155,147,0.6)'),
+    pointRadius:6,pointHoverRadius:9
+  }]},
+  options:{
+    responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`${c.raw.l}: ${Math.round(Math.pow(10,c.raw.x)).toLocaleString()} tests/M, ${Math.round(Math.pow(10,c.raw.y)).toLocaleString()} cases/M`}}},
+    scales:{
+      x:{grid:{color:gc},title:{display:true,text:'Tests per million (log₁₀)',color:tc},min:0,max:6.2},
+      y:{grid:{color:gc},title:{display:true,text:'Cases per million (log₁₀)',color:tc},min:0,max:5}
+    }
+  },
+  plugins:[{id:'lbl',afterDatasetsDraw(ch){
+    const ctx2=ch.ctx;
+    ch.data.datasets[0].data.forEach((d,i)=>{
+      if(!highlight.has(d.l))return;
+      const m=ch.getDatasetMeta(0); const pt=m.data[i];
+      ctx2.fillStyle=tc; ctx2.font='9px Arial';
+      ctx2.fillText(d.l,pt.x+6,pt.y-4);
+    });
+  }}]
+});
 
-new Chart(document.getElementById('asiaEuropeChart'), {
-  type: 'bar',
-  data: {
-    labels: allRegions.map(d=>d.n),
-    datasets: [{
-      data: allRegions.map(d=>d.v),
-      backgroundColor: allRegions.map(d=>d.r==='Europe'?'rgba(239,68,68,0.75)':'rgba(59,130,246,0.75)'),
-      borderRadius: 3
+// ─── Continental deaths bar ───
+new Chart(document.getElementById('contDeaths'), {
+  type:'bar',
+  data:{
+    labels:['Oceania','Africa','Asia','N.America','Europe','S.America'],
+    datasets:[{
+      label:'Median deaths/M',
+      data:[3,7,19,40,100,157],
+      backgroundColor:['#06b6d4','#10b981','#3b82f6','#f97316','#ef4444','#dc2626'],
+      borderRadius:4
+    },{
+      label:'Mean deaths/M',
+      data:[4,18,44,111,215,217],
+      backgroundColor:['rgba(6,182,212,0.3)','rgba(16,185,129,0.3)','rgba(59,130,246,0.3)','rgba(249,115,22,0.3)','rgba(239,68,68,0.3)','rgba(220,38,38,0.3)'],
+      borderRadius:4
     }]
   },
-  options: {
-    responsive:true, maintainAspectRatio:false,
-    plugins:{ legend:{display:false}, tooltip:{callbacks:{label:ctx=>ctx.raw.toLocaleString()+' per million'}} },
+  options:{
+    responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{position:'top',labels:{boxWidth:12,padding:14}},tooltip:{callbacks:{label:c=>c.dataset.label+': '+c.raw.toLocaleString()+'/M'}}},
     scales:{
-      x:{grid:{display:false},ticks:{maxRotation:45}},
-      y:{grid:{color:gridColor},title:{display:true,text:'Deaths per million',color:textColor}}
+      x:{grid:{display:false}},
+      y:{grid:{color:gc},title:{display:true,text:'Deaths per million',color:tc}}
     }
   }
 });
 
-// ---- CHART 5: India CFR ----
-const indiaSorted = indiaStates.map((s,i)=>({s,cfr:indiaCFR[i],cl:indiaCasesLakh[i],v:indiaVacc[i],'t':indiaTesting[i],u:indiaUrban[i]}))
-  .sort((a,b)=>b.cfr-a.cfr).slice(0,15);
+// ─── Region CFR vs Growth scatter ───
+new Chart(document.getElementById('regionCFR'), {
+  type:'scatter',
+  data:{datasets:[{
+    data:[
+      {x:10.56,y:1.69,l:'Africa'},
+      {x:12.97,y:3.88,l:'Americas'},
+      {x:5.76,y:2.57,l:'Eastern Med'},
+      {x:7.07,y:2.25,l:'South-East Asia'},
+      {x:4.34,y:6.40,l:'Europe'},
+      {x:4.03,y:2.82,l:'Western Pacific'}
+    ],
+    backgroundColor:['#10b981','#ef4444','#8b5cf6','#f97316','#3b82f6','#06b6d4'],
+    pointRadius:14,pointHoverRadius:16
+  }]},
+  options:{
+    responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`${c.raw.l}: growth ${c.raw.x}%/wk, CFR ${c.raw.y.toFixed(2)}%`}}},
+    scales:{
+      x:{grid:{color:gc},title:{display:true,text:'Median 1-week growth rate (%)',color:tc},min:2,max:16},
+      y:{grid:{color:gc},title:{display:true,text:'Aggregate CFR (%)',color:tc},min:0,max:8}
+    }
+  },
+  plugins:[{id:'lbl2',afterDatasetsDraw(ch){
+    const ctx2=ch.ctx; const m=ch.getDatasetMeta(0);
+    ch.data.datasets[0].data.forEach((d,i)=>{
+      const pt=m.data[i];
+      ctx2.fillStyle=isDark?'#edede9':'#18181a'; ctx2.font='bold 10px Arial'; ctx2.textAlign='center';
+      ctx2.fillText(d.l,pt.x,pt.y+3);
+    });
+  }}]
+});
 
-new Chart(document.getElementById('indiaCFRChart'), {
-  type: 'bar',
-  data: {
-    labels: indiaSorted.map(d=>d.s),
-    datasets: [{
-      label: 'CFR %',
-      data: indiaSorted.map(d=>d.cfr),
-      backgroundColor: indiaSorted.map(d=>d.cfr>1.5?'rgba(239,68,68,0.8)':d.cfr>1?'rgba(245,158,11,0.8)':'rgba(59,130,246,0.75)'),
-      borderRadius: 3
+// ─── Speed to 1K ───
+const speed1kData = [
+  {c:'China',d:3},{c:'Turkey',d:11},{c:'Iran',d:12},{c:'Switzerland',d:17},{c:'Norway',d:17},
+  {c:'Netherlands',d:17},{c:'Portugal',d:18},{c:'Denmark',d:19},{c:'Austria',d:20},
+  {c:'France',d:21},{c:'Germany',d:21},{c:'Spain',d:22},{c:'UK',d:24},{c:'USA',d:25},
+  {c:'Brazil',d:30},{c:'India',d:42},{c:'S.Africa',d:60},{c:'Nepal',d:124},{c:'Uruguay',d:124},{c:'Georgia',d:140}
+].sort((a,b)=>a.d-b.d);
+
+new Chart(document.getElementById('speed1k'), {
+  type:'bar',
+  data:{
+    labels:speed1kData.map(d=>d.c),
+    datasets:[{
+      data:speed1kData.map(d=>d.d),
+      backgroundColor:speed1kData.map(d=>d.d<20?'rgba(239,68,68,0.8)':d.d<40?'rgba(245,158,11,0.8)':'rgba(59,130,246,0.75)'),
+      borderRadius:3
     }]
   },
-  options: {
-    responsive:true, maintainAspectRatio:false, indexAxis:'y',
-    plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>('CFR: '+ctx.raw.toFixed(2)+'%')}}},
-    scales:{x:{grid:{color:gridColor},title:{display:true,text:'CFR (%)',color:textColor}},y:{grid:{display:false}}}
+  options:{
+    responsive:true,maintainAspectRatio:false,indexAxis:'y',
+    plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.raw+' days'}}},
+    scales:{
+      x:{grid:{color:gc},title:{display:true,text:'Days from first case to 1,000 cases',color:tc}},
+      y:{grid:{display:false}}
+    }
   }
-});
-
-// ---- CHART 6: Urbanisation scatter ----
-new Chart(document.getElementById('indiaUrbanChart'), {
-  type: 'scatter',
-  data: {
-    datasets: [{
-      data: indiaStates.map((s,i)=>({x:indiaUrban[i],y:indiaCasesLakh[i],label:s})),
-      backgroundColor: 'rgba(99,102,241,0.7)',
-      pointRadius: 6
-    }]
-  },
-  options: {
-    responsive:true, maintainAspectRatio:false,
-    plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>`${ctx.raw.label}: Urban ${ctx.raw.x}%, Cases ${ctx.raw.y.toFixed(0)}/lakh`}}},
-    scales:{
-      x:{grid:{color:gridColor},title:{display:true,text:'Urban population (%)',color:textColor}},
-      y:{grid:{color:gridColor},title:{display:true,text:'Cases per lakh population',color:textColor}}
-    }
-  },
-  plugins:[{
-    id:'labels2',
-    afterDatasetsDraw(chart){
-      const ctx2=chart.ctx;
-      const highlight=new Set(['Maharashtra','Kerala','Delhi','Goa','Bihar','Chandigarh']);
-      chart.data.datasets[0].data.forEach((d,i)=>{
-        if(!highlight.has(d.label))return;
-        const meta=chart.getDatasetMeta(0);
-        const pt=meta.data[i];
-        ctx2.fillStyle=textColor; ctx2.font='9px Arial';
-        ctx2.fillText(d.label,pt.x+5,pt.y-4);
-      });
-    }
-  }]
-});
-
-// ---- CHART 7: Testing scatter ----
-new Chart(document.getElementById('indiaTestChart'), {
-  type: 'scatter',
-  data: {
-    datasets: [{
-      data: indiaStates.map((s,i)=>({x:indiaTesting[i],y:indiaCasesLakh[i],label:s})),
-      backgroundColor: 'rgba(245,158,11,0.75)',
-      pointRadius: 6
-    }]
-  },
-  options: {
-    responsive:true, maintainAspectRatio:false,
-    plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>`${ctx.raw.label}: ${ctx.raw.x}K tests/M, ${ctx.raw.y.toFixed(0)} cases/lakh`}}},
-    scales:{
-      x:{grid:{color:gridColor},title:{display:true,text:'Tests per million population',color:textColor}},
-      y:{grid:{color:gridColor},title:{display:true,text:'Cases detected per lakh',color:textColor}}
-    }
-  },
-  plugins:[{
-    id:'labels3',
-    afterDatasetsDraw(chart){
-      const ctx2=chart.ctx;
-      const highlight=new Set(['Kerala','Delhi','Bihar','UP','Maharashtra','Goa','Mizoram']);
-      chart.data.datasets[0].data.forEach((d,i)=>{
-        if(!highlight.has(d.label))return;
-        const meta=chart.getDatasetMeta(0);
-        const pt=meta.data[i];
-        ctx2.fillStyle=textColor; ctx2.font='9px Arial';
-        ctx2.fillText(d.label,pt.x+5,pt.y-4);
-      });
-    }
-  }]
-});
-
-// ---- CHART 8: Vaccination vs Deaths ----
-new Chart(document.getElementById('vaccDeaths'), {
-  type: 'scatter',
-  data: {
-    datasets: [{
-      data: vaccPer100.map((v,i)=>({x:v,y:deathsPerM[i],label:countries[i]})),
-      backgroundColor: vaccPer100.map((_,i)=>{
-        const c=continents[i];
-        return c==='Asia'||c==='Oceania'?'rgba(59,130,246,0.7)':c==='Europe'?'rgba(16,185,129,0.7)':'rgba(245,158,11,0.7)';
-      }),
-      pointRadius: 6
-    }]
-  },
-  options: {
-    responsive:true, maintainAspectRatio:false,
-    plugins:{legend:{display:false},tooltip:{callbacks:{label:ctx=>`${ctx.raw.label}: ${ctx.raw.x.toFixed(0)} doses/100, ${ctx.raw.y.toLocaleString()} deaths/M`}}},
-    scales:{
-      x:{grid:{color:gridColor},title:{display:true,text:'Vaccination doses per 100 population',color:textColor}},
-      y:{grid:{color:gridColor},title:{display:true,text:'Deaths per million population',color:textColor}}
-    }
-  },
-  plugins:[{
-    id:'labels4',
-    afterDatasetsDraw(chart){
-      const ctx2=chart.ctx;
-      const highlight=new Set(['USA','Russia','Brazil','Japan','South Korea','Poland','Ukraine']);
-      chart.data.datasets[0].data.forEach((d,i)=>{
-        if(!highlight.has(d.label))return;
-        const meta=chart.getDatasetMeta(0);
-        const pt=meta.data[i];
-        ctx2.fillStyle=textColor; ctx2.font='9px Arial';
-        ctx2.fillText(d.label,pt.x+5,pt.y-4);
-      });
-    }
-  }]
-});
-
-// ---- State table ----
-const stateRanked = indiaStates.map((s,i)=>({
-  s, cfr:indiaCFR[i], cl:indiaCasesLakh[i], v:indiaVacc[i], t:indiaTesting[i]
-})).sort((a,b)=>a.cfr-b.cfr).slice(0,15);
-
-const tbody = document.getElementById('stateTableBody');
-stateRanked.forEach((row,i)=>{
-  const tr = document.createElement('tr');
-  const cfrColor = row.cfr<0.7?'var(--accent2)':row.cfr>1.5?'var(--danger)':'var(--warn)';
-  tr.innerHTML = `
-    <td style="color:var(--text3)">${i+1}</td>
-    <td>${row.s}</td>
-    <td class="num" style="color:${cfrColor};font-weight:600">${row.cfr.toFixed(2)}</td>
-    <td class="num">${row.cl.toFixed(0)}</td>
-    <td class="num">${row.v.toFixed(0)}</td>
-    <td class="num">${row.t.toLocaleString()}</td>
-  `;
-  tbody.appendChild(tr);
 });
 </script>
 </body>
