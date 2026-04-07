@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>COVID-19 Analysis — Global & India</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+:root {
+  --bg:#fafaf8; --surface:#fff; --surface2:#f3f2ef; --border:rgba(0,0,0,0.08);
+  --border2:rgba(0,0,0,0.14); --text:#181816; --text2:#5a5a54; --text3:#9b9b93;
+  --blue:#1d4ed8; --green:#0f766e; --red:#b91c1c; --amber:#b45309; --purple:#5b21b6;
+  --india:#d97706; --r:10px; --rl:14px;
+}
+@media(prefers-color-scheme:dark){
+  :root{--bg:#131311;--surface:#1d1d1b;--surface2:#252523;--border:rgba(255,255,255,0.08);
+  --border2:rgba(255,255,255,0.14);--text:#edede9;--text2:#9b9b93;--text3:#6b6b65;}
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'Georgia',serif;line-height:1.7;}
+.page{max-width:980px;margin:0 auto;padding:2.5rem 1.5rem 5rem;}
+
+/* Header */
+.hdr{border-bottom:1.5px solid var(--border2);padding-bottom:1.5rem;margin-bottom:2.2rem;}
+.hdr-eyebrow{font-size:.72rem;font-family:Arial,sans-serif;color:var(--text3);letter-spacing:1.2px;text-transform:uppercase;margin-bottom:.5rem;}
+.hdr h1{font-size:2rem;font-weight:700;letter-spacing:-.4px;}
+.hdr .sub{font-size:.95rem;color:var(--text2);font-family:Arial,sans-serif;margin-top:.35rem;}
+.hdr .meta{font-size:.76rem;color:var(--text3);font-family:Arial,sans-serif;margin-top:.7rem;}
+.data-badge{display:inline-block;background:rgba(16,185,129,.12);color:#065f46;border:0.5px solid rgba(16,185,129,.3);border-radius:4px;font-size:.7rem;padding:1px 7px;font-family:Arial,sans-serif;font-weight:600;margin-left:6px;}
+@media(prefers-color-scheme:dark){.data-badge{background:rgba(16,185,129,.15);color:#6ee7b7;}}
+
+/* Section nav */
+.section-nav{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:2rem;font-family:Arial,sans-serif;font-size:.76rem;}
+.snav-btn{padding:4px 12px;border-radius:20px;border:1px solid var(--border2);background:var(--surface2);color:var(--text2);cursor:pointer;transition:all .15s;}
+.snav-btn:hover,.snav-btn.active{background:var(--blue);color:#fff;border-color:var(--blue);}
+.snav-btn.india{border-color:var(--india);}
+.snav-btn.india:hover,.snav-btn.india.active{background:var(--india);border-color:var(--india);}
+
+/* Part divider */
+.part-hdr{background:var(--surface2);border-radius:var(--rl);padding:.9rem 1.2rem;margin:2.5rem 0 2rem;display:flex;align-items:center;gap:12px;}
+.part-badge{font-size:.68rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;font-family:Arial,sans-serif;padding:3px 10px;border-radius:20px;white-space:nowrap;}
+.part-badge.global{background:rgba(29,78,216,.12);color:var(--blue);}
+.part-badge.india{background:rgba(217,119,6,.12);color:var(--india);}
+.part-title{font-size:1rem;font-weight:700;font-family:Arial,sans-serif;color:var(--text);}
+.part-sub{font-size:.8rem;color:var(--text3);font-family:Arial,sans-serif;}
+
+/* Sections */
+section{margin-bottom:2.8rem;}
+.eyebrow{display:inline-block;font-size:.68rem;font-weight:700;letter-spacing:1.1px;text-transform:uppercase;color:var(--blue);font-family:Arial,sans-serif;margin-bottom:.4rem;}
+.eyebrow.india{color:var(--india);}
+h2{font-size:1.3rem;font-weight:700;margin-bottom:.4rem;}
+h3{font-size:1rem;font-weight:600;font-family:Arial,sans-serif;margin-bottom:.3rem;color:var(--text);}
+p{font-size:.94rem;color:var(--text2);font-family:Arial,sans-serif;margin-bottom:.75rem;}
+.divider{border:none;border-top:1px solid var(--border);margin:2.2rem 0;}
+
+/* Metric grid */
+.mg{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:9px;margin:1rem 0 1.5rem;}
+.mc{background:var(--surface2);border-radius:var(--r);padding:.8rem 1rem;}
+.mc .lbl{font-size:.68rem;color:var(--text3);font-family:Arial,sans-serif;text-transform:uppercase;letter-spacing:.3px;margin-bottom:3px;}
+.mc .val{font-size:1.45rem;font-weight:700;font-family:Arial,sans-serif;color:var(--text);}
+.mc .sub{font-size:.72rem;color:var(--text3);font-family:Arial,sans-serif;margin-top:2px;}
+.mc.r .val{color:var(--red);} .mc.b .val{color:var(--blue);} .mc.g .val{color:var(--green);} .mc.a .val{color:var(--amber);} .mc.ind .val{color:var(--india);}
+
+/* Chart wrapper */
+.cw{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--rl);padding:1.1rem 1.3rem;margin:1rem 0;}
+.ct{font-size:.82rem;font-weight:600;color:var(--text2);font-family:Arial,sans-serif;margin-bottom:.7rem;}
+.cc{position:relative;width:100%;}
+
+/* Hypothesis */
+.hyp{border-left:3px solid var(--blue);background:var(--surface);border-radius:0 var(--r) var(--r) 0;padding:.85rem 1.1rem;margin:.9rem 0;}
+.hyp.ok{border-color:var(--green);} .hyp.warn{border-color:var(--amber);} .hyp.no{border-color:var(--red);}
+.hyp-lbl{font-size:.68rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;font-family:Arial,sans-serif;color:var(--blue);margin-bottom:3px;}
+.hyp.ok .hyp-lbl{color:var(--green);} .hyp.warn .hyp-lbl{color:var(--amber);} .hyp.no .hyp-lbl{color:var(--red);}
+.hyp-q{font-size:.92rem;font-weight:600;font-family:Arial,sans-serif;color:var(--text);}
+.hyp-r{font-size:.8rem;font-family:Arial,sans-serif;color:var(--text2);margin-top:5px;}
+.sb{display:inline-block;background:var(--surface2);border:0.5px solid var(--border);border-radius:5px;padding:1px 7px;font-size:.76rem;font-family:Arial,sans-serif;color:var(--text2);margin:0 2px;}
+.sig{color:var(--green);font-weight:700;} .ns{color:var(--amber);font-weight:700;}
+
+/* Table */
+.tbl{width:100%;border-collapse:collapse;font-family:Arial,sans-serif;font-size:.8rem;margin:.7rem 0;}
+.tbl th{text-align:left;padding:6px 9px;background:var(--surface2);color:var(--text2);font-weight:600;font-size:.72rem;text-transform:uppercase;letter-spacing:.4px;border-bottom:1px solid var(--border2);}
+.tbl td{padding:6px 9px;border-bottom:0.5px solid var(--border);color:var(--text);}
+.tbl tr:hover td{background:var(--surface2);}
+.num{text-align:right;font-variant-numeric:tabular-nums;}
+
+/* Tabs */
+.tabs{display:flex;gap:3px;border-bottom:1px solid var(--border);margin-bottom:1rem;}
+.tb{padding:5px 13px;font-size:.8rem;font-family:Arial,sans-serif;background:none;border:none;color:var(--text2);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;transition:color .15s;}
+.tb.on{color:var(--blue);border-bottom-color:var(--blue);font-weight:600;}
+
+.tc{display:none;} .tc.on{display:block;}
+
+/* Callout */
+.callout{background:var(--surface2);border-radius:var(--r);padding:.85rem 1.1rem;margin:.75rem 0;font-size:.86rem;font-family:Arial,sans-serif;color:var(--text);}
+.callout strong{color:var(--text);}
+.callout.india{border-left:3px solid var(--india);}
+.callout.global{border-left:3px solid var(--blue);}
+
+/* Conclusion grid */
+.cgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:11px;margin:1rem 0;}
+.ccard{background:var(--surface);border:0.5px solid var(--border);border-radius:var(--rl);padding:.95rem 1.1rem;}
+.ccard-lbl{font-size:.68rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;font-family:Arial,sans-serif;margin-bottom:5px;}
+.ccard-body{font-size:.88rem;font-family:Arial,sans-serif;color:var(--text);font-weight:500;}
+
+/* Comparison band */
+.compare-row{display:grid;grid-template-columns:1fr 1px 1fr;gap:0;margin:1rem 0;background:var(--surface);border:0.5px solid var(--border);border-radius:var(--rl);overflow:hidden;}
+.compare-col{padding:1rem 1.2rem;}
+.compare-col:first-child{border-right:1px solid var(--border);}
+.compare-label{font-size:.68rem;font-weight:700;letter-spacing:1px;text-transform:uppercase;font-family:Arial,sans-serif;margin-bottom:.5rem;}
+.compare-label.global{color:var(--blue);}
+.compare-label.india{color:var(--india);}
+.compare-text{font-size:.83rem;font-family:Arial,sans-serif;color:var(--text2);}
+
+/* Legend */
+.leg{display:flex;flex-wrap:wrap;gap:12px;font-size:.76rem;font-family:Arial,sans-serif;color:var(--text2);margin-bottom:7px;}
+.ld{width:10px;height:10px;border-radius:2px;display:inline-block;margin-right:3px;}
+
+/* Footnote */
+.fn{font-size:.73rem;color:var(--text3);font-family:Arial,sans-serif;margin-top:2.5rem;border-top:0.5px solid var(--border);padding-top:1rem;}
+</style>
+</head>
+<body>
+<div class="page">
+
+<!-- HEADER -->
+<div class="hdr">
+  <div class="hdr-eyebrow">CS 328 — Final Data Analysis Report</div>
+  <h1>COVID-19: Global Patterns &amp; India's State-Level Story</h1>
+  <p class="sub">A two-part investigation — international pandemic dynamics (Jan–Jul 2020) and the relationship between population density and COVID-19 spread across Indian states (2020–2023)</p>
+  <p class="meta">
+    Aryan Kumar · 24110055 &nbsp;|&nbsp;
+    Kaggle global datasets <span class="data-badge">✓ Real data</span> &nbsp;|&nbsp;
+    Indian state COVID + Census 2011 data <span class="data-badge">✓ Real data</span>
+  </p>
+</div>
+
+<!-- ══════════════════════════════════════════════ PART 1 -->
+<div class="part-hdr">
+  <div>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+      <span class="part-badge global">Part 1 — Global</span>
+    </div>
+    <div class="part-title">International Analysis: 187 Countries, First Wave</div>
+    <div class="part-sub">Data cutoff: July 27, 2020 · 188 days · ~85K rows</div>
+  </div>
+</div>
+
+<!-- 1 DATA OVERVIEW -->
+<section id="s-overview">
+  <span class="eyebrow">1 — Data Overview</span>
+  <h2>Snapshot at July 27, 2020</h2>
+  <p>The dataset captures the first wave of the pandemic in full, spanning 188 days from January 2020 through late July 2020, when global daily new cases were approaching 300K/day.</p>
+
+  <div class="mg">
+    <div class="mc r"><div class="lbl">Confirmed cases</div><div class="val">16.5M</div><div class="sub">187 countries</div></div>
+    <div class="mc r"><div class="lbl">Total deaths</div><div class="val">656K</div><div class="sub">CFR ≈ 3.98%</div></div>
+    <div class="mc g"><div class="lbl">Recovered</div><div class="val">10.1M</div><div class="sub">61.4% of closed cases</div></div>
+    <div class="mc b"><div class="lbl">Peak daily cases</div><div class="val">282,756</div><div class="sub">Jul 23, 2020</div></div>
+    <div class="mc a"><div class="lbl">Worst CFR</div><div class="val">28.6%</div><div class="sub">Yemen</div></div>
+    <div class="mc"><div class="lbl">Best-tested</div><div class="val">995K</div><div class="sub">Luxembourg / 1M pop</div></div>
+  </div>
+
+  <div class="cw">
+    <div class="ct">Total confirmed cases by WHO Region (Jul 27, 2020)</div>
+    <div class="cc" style="height:230px"><canvas id="regionBar"></canvas></div>
+  </div>
+</section>
+
+<!-- 2 GLOBAL TRAJECTORY -->
+<section id="s-trajectory">
+  <span class="eyebrow">2 — Global Trajectory</span>
+  <h2>The Pandemic Accelerates</h2>
+  <p>Global weekly new cases rose monotonically from March through July 2020 with no sign of plateau. Europe saw an early peak and partial containment by May; the Americas, South-East Asia, and Africa were still in steep ascent.</p>
+
+  <div class="tabs">
+    <button class="tb on" onclick="tab(this,'t-global')">Global weekly trend</button>
+    <button class="tb" onclick="tab(this,'t-country')">Country trajectories</button>
+    <button class="tb" onclick="tab(this,'t-growth')">Growth rates</button>
+  </div>
+
+  <div id="t-global" class="tc on">
+    <div class="cw">
+      <div class="ct">Global weekly new cases &amp; deaths (Jan–Jul 2020)</div>
+      <div class="cc" style="height:280px"><canvas id="globalWave"></canvas></div>
+    </div>
+    <div class="callout global">Weekly new cases rose from near-zero in January to <strong>1.75 million in the last full week of July 2020</strong> — a 3,150× increase in 6 months. Deaths peaked around April 12 (47,170/week) before rising again in July as the Americas surged.</div>
+  </div>
+
+  <div id="t-country" class="tc">
+    <div class="cw">
+      <div class="ct">Weekly new cases — top 5 countries</div>
+      <div class="leg">
+        <span><span class="ld" style="background:#ef4444"></span>USA</span>
+        <span><span class="ld" style="background:#f97316"></span>Brazil</span>
+        <span><span class="ld" style="background:#3b82f6"></span>India</span>
+        <span><span class="ld" style="background:#8b5cf6"></span>Russia</span>
+        <span><span class="ld" style="background:#10b981"></span>UK</span>
+      </div>
+      <div class="cc" style="height:270px"><canvas id="countryTraj"></canvas></div>
+    </div>
+    <div class="callout global"><strong>Russia's flattening</strong> is striking — weekly cases plateaued then declined after April, consistent with early lockdown effectiveness. In stark contrast, <strong>USA, Brazil, and India</strong> were all still climbing steeply at data cutoff.</div>
+  </div>
+
+  <div id="t-growth" class="tc">
+    <div class="cw">
+      <div class="ct">Median 1-week % increase in confirmed cases — by WHO Region</div>
+      <div class="cc" style="height:210px"><canvas id="growthBar"></canvas></div>
+    </div>
+    <div class="callout global">Europe had the <strong>lowest median growth rate (4.3%/week)</strong>. Africa (10.6%), Americas (13.0%), and South-East Asia (7.1%) were all in active community spread.</div>
+  </div>
+</section>
+
+<hr class="divider">
+
+<!-- 3 HYPOTHESES -->
+<section id="s-hypotheses">
+  <span class="eyebrow">3 — Global Hypotheses</span>
+  <h2>Four Testable Claims</h2>
+
+  <div class="hyp ok">
+    <div class="hyp-lbl">H1 — Confirmed ✓</div>
+    <div class="hyp-q">More testing reveals more cases: test capacity is a primary driver of detected case rates</div>
+    <div class="hyp-r">Pearson r on log-transformed Tests/1M vs Cases/1M: <span class="sb sig">r = 0.621</span><span class="sb sig">p &lt; 0.00001</span> (n = 173). Countries testing more per capita consistently report higher detection rates — not because they are more infected, but because they find what is already there.</div>
+  </div>
+
+  <div class="hyp ok">
+    <div class="hyp-lbl">H2 — Confirmed ✓</div>
+    <div class="hyp-q">Europe suffered significantly higher mortality per capita than Asia</div>
+    <div class="hyp-r">Mann-Whitney U test: <span class="sb sig">p &lt; 0.00001</span>. Europe median: 100 deaths/M, Asia median: 19 deaths/M — a 5.3× difference.</div>
+  </div>
+
+  <div class="hyp ok">
+    <div class="hyp-lbl">H3 — Confirmed ✓</div>
+    <div class="hyp-q">Americas were still accelerating while Europe was stabilising by July 2020</div>
+    <div class="hyp-r">Mann-Whitney U: <span class="sb sig">p = 0.0012</span>. Americas median 13.0%/week vs Europe 4.3%/week. Colombia (26%) and Argentina (28%) were in rapid acceleration.</div>
+  </div>
+
+  <div class="hyp warn">
+    <div class="hyp-lbl">H4 — Not Supported ~</div>
+    <div class="hyp-q">South America had the highest CFR of any continent</div>
+    <div class="hyp-r">Mann-Whitney U: <span class="sb ns">p = 0.39</span> — not significant. Europe dominates the worst-CFR list: UK (15.2%), Belgium (14.8%), Italy (14.3%), France (13.7%).</div>
+  </div>
+</section>
+
+<!-- 4 TESTING PARADOX -->
+<section id="s-testing">
+  <span class="eyebrow">4 — The Testing Paradox</span>
+  <h2>Testing Capacity Defines What We See</h2>
+  <p>Test capacity is the dominant source of cross-country noise. The scatter below shows that Tests/1M explains a substantial portion of variance in detected Cases/1M on a log scale (r = 0.621).</p>
+
+  <div class="cw">
+    <div class="ct">Tests per million vs Cases per million (log scale)</div>
+    <div class="leg">
+      <span><span class="ld" style="background:rgba(59,130,246,0.75)"></span>Europe</span>
+      <span><span class="ld" style="background:rgba(16,185,129,0.75)"></span>Asia</span>
+      <span><span class="ld" style="background:rgba(245,158,11,0.75)"></span>Americas</span>
+      <span><span class="ld" style="background:rgba(239,68,68,0.75)"></span>Africa</span>
+    </div>
+    <div class="cc" style="height:300px"><canvas id="testScatter"></canvas></div>
+  </div>
+
+  <table class="tbl">
+    <thead><tr><th>Country</th><th class="num">Tests/1M</th><th class="num">Cases/1M</th><th class="num">Deaths/1M</th><th>Note</th></tr></thead>
+    <tbody>
+      <tr><td>Luxembourg</td><td class="num">995,282</td><td class="num">11,282</td><td class="num">190</td><td style="font-size:.75rem;color:var(--text3)">World's most tested</td></tr>
+      <tr><td>UAE</td><td class="num">531,470</td><td class="num">6,246</td><td class="num">36</td><td style="font-size:.75rem;color:var(--text3)">Mass testing, low CFR</td></tr>
+      <tr><td>USA</td><td class="num">190,640</td><td class="num">15,194</td><td class="num">492</td><td style="font-size:.75rem;color:var(--text3)">High burden + testing</td></tr>
+      <tr><td>India</td><td class="num">12,139</td><td class="num">1,178</td><td class="num">29</td><td style="font-size:.75rem;color:var(--text3)">Low testing → undercounting</td></tr>
+      <tr><td>Yemen</td><td class="num" style="color:var(--red)">4</td><td class="num">25</td><td class="num">7</td><td style="font-size:.75rem;color:var(--red)">Near-zero testing, CFR = 28.6%</td></tr>
+    </tbody>
+  </table>
+  <div class="callout global"><strong>Yemen's CFR of 28.6%</strong> is almost entirely a testing artefact — with only the sickest patients reaching hospitals, denominator collapse makes every measured death count disproportionately.</div>
+</section>
+
+<!-- 5 CONTINENTAL MORTALITY -->
+<section id="s-continental">
+  <span class="eyebrow">5 — Continental Mortality</span>
+  <h2>Europe and the Americas Pay a Higher Price</h2>
+
+  <div class="cw">
+    <div class="ct">Deaths per million by continent</div>
+    <div class="cc" style="height:240px"><canvas id="contDeaths"></canvas></div>
+  </div>
+
+  <table class="tbl">
+    <thead><tr><th>Continent</th><th class="num">Countries</th><th class="num">Median deaths/M</th><th class="num">Worst country</th></tr></thead>
+    <tbody>
+      <tr><td>South America</td><td class="num">13</td><td class="num" style="color:var(--red)">157</td><td style="font-size:.75rem">Peru (619/M)</td></tr>
+      <tr><td>Europe</td><td class="num">45</td><td class="num" style="color:var(--amber)">100</td><td style="font-size:.75rem">San Marino (1,238/M)</td></tr>
+      <tr><td>North America</td><td class="num">28</td><td class="num">40</td><td style="font-size:.75rem">USA (492/M)</td></tr>
+      <tr><td>Asia</td><td class="num">42</td><td class="num" style="color:var(--green)">19</td><td style="font-size:.75rem">Armenia (260/M)</td></tr>
+      <tr><td>Africa</td><td class="num">55</td><td class="num" style="color:var(--green)">7</td><td style="font-size:.75rem">South Africa (162/M)</td></tr>
+      <tr><td>Oceania</td><td class="num">4</td><td class="num" style="color:var(--green)">3</td><td style="font-size:.75rem">Australia (10/M)</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- ══════════════════════════════════════════════ PART 2 -->
+<div class="part-hdr">
+  <div>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+      <span class="part-badge india">Part 2 — India</span>
+    </div>
+    <div class="part-title">Indian States: Does Population Density Drive COVID Cases?</div>
+    <div class="part-sub">28 major states · COVID data 2020–2023 · Census 2011 population & density</div>
+  </div>
+</div>
+
+<!-- 6 INDIA OVERVIEW -->
+<section id="s-india-overview">
+  <span class="eyebrow india">6 — Indian Data Overview</span>
+  <h2>The Hypothesis</h2>
+  <p>States with higher population density had higher COVID-19 cases per million people. To test this, we merge two datasets: state-wise cumulative COVID case counts (2020–2023) with Census 2011 population and density figures for 28 major states.</p>
+
+  <div class="mg">
+    <div class="mc ind"><div class="lbl">States analysed</div><div class="val">28</div><div class="sub">Major states only</div></div>
+    <div class="mc ind"><div class="lbl">Top cases/M</div><div class="val">148,735</div><div class="sub">Kerala</div></div>
+    <div class="mc"><div class="lbl">Highest density</div><div class="val">1,102</div><div class="sub">Bihar (per km²)</div></div>
+    <div class="mc r"><div class="lbl">Total cases (max)</div><div class="val">6.61M</div><div class="sub">Maharashtra</div></div>
+    <div class="mc g"><div class="lbl">Mean cases/M</div><div class="val">38,567</div><div class="sub">Across 28 states</div></div>
+    <div class="mc a"><div class="lbl">Pearson r</div><div class="val">−0.036</div><div class="sub">Density vs cases/M</div></div>
+  </div>
+
+  <div class="callout india">Note that comparing total cases alone is misleading — states differ enormously in population. All comparisons use <strong>cases per million people</strong> to normalise for population size.</div>
+</section>
+
+<!-- 7 INDIA SCATTER & REGRESSION -->
+<section id="s-india-scatter">
+  <span class="eyebrow india">7 — Density vs COVID Cases</span>
+  <h2>Scatter Plot: The Main Visual Evidence</h2>
+  <p>If the hypothesis holds, points should trend upward as density increases. The chart below plots population density (x-axis) against COVID-19 cases per million (y-axis) for all 28 states.</p>
+
+  <div class="cw">
+    <div class="ct">Population Density vs COVID-19 Cases per Million — 28 Indian States</div>
+    <div class="cc" style="height:340px"><canvas id="indiaScatter"></canvas></div>
+  </div>
+  <div class="callout india"><strong>No clear upward trend is visible.</strong> Kerala and Goa record the highest cases per million despite only moderate density. Bihar, the densest state, has some of the lowest case rates — suggesting density alone does not explain COVID burden.</div>
+</section>
+
+<!-- 8 INDIA STATE TABLE -->
+<section id="s-india-table">
+  <span class="eyebrow india">8 — State Summary</span>
+  <h2>Top 15 States by Population Density</h2>
+
+  <table class="tbl">
+    <thead><tr><th>State</th><th class="num">Density (per km²)</th><th class="num">Population</th><th class="num">Total Cases</th><th class="num">Cases / Million</th></tr></thead>
+    <tbody>
+      <tr><td>Bihar</td><td class="num">1,102</td><td class="num">104,099,452</td><td class="num">726,098</td><td class="num" style="color:var(--green)">6,975</td></tr>
+      <tr><td>West Bengal</td><td class="num">1,029</td><td class="num">91,276,115</td><td class="num">1,592,908</td><td class="num">17,452</td></tr>
+      <tr><td>Kerala</td><td class="num">859</td><td class="num">33,406,061</td><td class="num">4,968,657</td><td class="num" style="color:var(--red)">148,735</td></tr>
+      <tr><td>Uttar Pradesh</td><td class="num">828</td><td class="num">199,812,341</td><td class="num">1,710,158</td><td class="num">8,559</td></tr>
+      <tr><td>Haryana</td><td class="num">573</td><td class="num">25,351,462</td><td class="num">771,252</td><td class="num">30,422</td></tr>
+      <tr><td>Tamil Nadu</td><td class="num">555</td><td class="num">72,147,030</td><td class="num">2,702,623</td><td class="num">37,460</td></tr>
+      <tr><td>Punjab</td><td class="num">550</td><td class="num">27,743,338</td><td class="num">602,401</td><td class="num">21,713</td></tr>
+      <tr><td>Jharkhand</td><td class="num">414</td><td class="num">32,988,134</td><td class="num">348,764</td><td class="num">10,572</td></tr>
+      <tr><td>Assam</td><td class="num">397</td><td class="num">31,205,576</td><td class="num">610,645</td><td class="num">19,568</td></tr>
+      <tr><td>Goa</td><td class="num">394</td><td class="num">1,458,545</td><td class="num">178,108</td><td class="num" style="color:var(--amber)">122,113</td></tr>
+      <tr><td>Maharashtra</td><td class="num">365</td><td class="num">112,374,333</td><td class="num">6,611,078</td><td class="num">58,831</td></tr>
+      <tr><td>Tripura</td><td class="num">350</td><td class="num">3,673,917</td><td class="num">84,468</td><td class="num">22,991</td></tr>
+      <tr><td>Karnataka</td><td class="num">319</td><td class="num">61,095,297</td><td class="num">2,988,333</td><td class="num">48,913</td></tr>
+      <tr><td>Telangana</td><td class="num">312</td><td class="num">35,003,674</td><td class="num">671,463</td><td class="num">19,183</td></tr>
+      <tr><td>Gujarat</td><td class="num">308</td><td class="num">60,439,692</td><td class="num">826,577</td><td class="num">13,676</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- 9 INDIA CORRELATION -->
+<section id="s-india-stats">
+  <span class="eyebrow india">9 — Statistical Analysis</span>
+  <h2>Correlation &amp; Regression Results</h2>
+
+  <div class="hyp no">
+    <div class="hyp-lbl">Indian Hypothesis — Not Supported ✗</div>
+    <div class="hyp-q">States with higher population density had higher COVID-19 cases per million</div>
+    <div class="hyp-r">
+      Pearson r = <span class="sb ns">−0.036</span> (p = 0.857) — very weak, not significant.<br>
+      Spearman r = <span class="sb ns">−0.291</span> (p = 0.133) — also not significant.<br>
+      Linear regression R² = <span class="sb ns">0.001</span> — density explains only 0.1% of the variance in cases.<br>
+      The regression slope is actually slightly negative (−4.3), meaning denser states had marginally <em>fewer</em> cases per million.
+    </div>
+  </div>
+
+  <div class="cw">
+    <div class="ct">Outlier States — Largest residuals from regression line</div>
+    <div class="cc" style="height:280px"><canvas id="indiaResidual"></canvas></div>
+  </div>
+
+  <div class="callout india">
+    <strong>Kerala, Goa, and Mizoram</strong> had far more cases than their density would predict — likely driven by high testing rates, urbanisation patterns, and strong healthcare reporting. <strong>Bihar, Uttar Pradesh, and Madhya Pradesh</strong> had far fewer, likely reflecting lower testing rather than lower infection.
+  </div>
+</section>
+
+<!-- ══════════════════════════════════════════════ PART 3: SYNTHESIS -->
+<div class="part-hdr">
+  <div>
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+      <span class="part-badge global">Part 3</span>
+    </div>
+    <div class="part-title">Cross-Scale Synthesis: What the Two Analyses Share</div>
+    <div class="part-sub">Patterns that appear at both the global and Indian state level</div>
+  </div>
+</div>
+
+<!-- 10 SYNTHESIS -->
+<section id="s-synthesis">
+  <span class="eyebrow">10 — Synthesis</span>
+  <h2>A Consistent Thread: Testing and Policy Trump Geography</h2>
+
+  <div class="compare-row">
+    <div class="compare-col">
+      <div class="compare-label global">Global finding</div>
+      <div class="compare-text">Test capacity (r = 0.621) is the dominant driver of detected case rates across countries. Yemen's 28.6% CFR is almost entirely a testing artefact. Africa's apparently low death rates likely reflect massive under-testing.</div>
+    </div>
+    <div class="compare-col">
+      <div class="compare-label india">Indian finding</div>
+      <div class="compare-text">Kerala, Goa, and Mizoram record the highest cases per million — largely because they tested more aggressively. Bihar and UP, among India's densest states, record the lowest case rates, likely reflecting undertesting rather than low infection.</div>
+    </div>
+  </div>
+
+  <div class="compare-row" style="margin-top:.8rem">
+    <div class="compare-col">
+      <div class="compare-label global">Global finding</div>
+      <div class="compare-text">Physical proximity (population density, urbanisation) was less decisive than early containment speed. Georgia and Uruguay — by delaying the threshold to 1,000 cases — bought critical preparation time.</div>
+    </div>
+    <div class="compare-col">
+      <div class="compare-label india">Indian finding</div>
+      <div class="compare-text">Population density explains essentially none (R² = 0.001) of case variation across Indian states. Bihar (1,102/km²) has 6,975 cases/M; Mizoram (52/km²) has 110,607/M — a 16× difference with inverted density.</div>
+    </div>
+  </div>
+
+  <div class="compare-row" style="margin-top:.8rem">
+    <div class="compare-col">
+      <div class="compare-label global">Global finding</div>
+      <div class="compare-text">Healthcare systems and early response mattered more than demographics. Asia / Western Pacific contained Wave 1 with 5.3× lower mortality than Europe, driven by protocol, not geography.</div>
+    </div>
+    <div class="compare-col">
+      <div class="compare-label india">Indian finding</div>
+      <div class="compare-text">Kerala — known for its strong public health infrastructure — had the highest cases per million but among the lowest case fatality rates, suggesting superior detection and management, not worse outcomes.</div>
+    </div>
+  </div>
+</section>
+
+<!-- 11 FINAL CONCLUSIONS -->
+<section id="s-conclusions">
+  <span class="eyebrow">11 — Conclusions</span>
+  <h2>What the Combined Data Shows</h2>
+
+  <div class="cgrid">
+    <div class="ccard" style="border-left:3px solid var(--blue)">
+      <div class="ccard-lbl" style="color:var(--blue)">Finding 1 — Testing is the great confound</div>
+      <div class="ccard-body">At both scales — across 187 countries and across 28 Indian states — the most important determinant of measured case rates is testing capacity, not underlying exposure. Raw case comparisons are largely meaningless without normalising for testing.</div>
+    </div>
+    <div class="ccard" style="border-left:3px solid var(--green)">
+      <div class="ccard-lbl" style="color:var(--green)">Finding 2 — Density did not drive COVID</div>
+      <div class="ccard-body">The Indian hypothesis that denser states would have more cases per million is clearly not supported (r = −0.036, p = 0.857, R² = 0.001). Globally, Asia outperformed Europe despite far higher urban densities — confirming that policy and system capacity dominate.</div>
+    </div>
+    <div class="ccard" style="border-left:3px solid var(--red)">
+      <div class="ccard-lbl" style="color:var(--red)">Finding 3 — Response speed was decisive</div>
+      <div class="ccard-body">Countries and states that tested widely, traced contacts early, and maintained healthcare capacity consistently outperformed those that did not — regardless of geographic or demographic starting conditions.</div>
+    </div>
+    <div class="ccard" style="border-left:3px solid var(--amber)">
+      <div class="ccard-lbl" style="color:var(--amber)">Finding 4 — The Americas became the new epicentre</div>
+      <div class="ccard-body">By July 2020, the Americas held 53% of global cases with a median growth rate of 13%/week — 3× Europe's. Within India, Maharashtra paralleled this pattern: the highest absolute case count but only moderate cases per million due to its large population base.</div>
+    </div>
+  </div>
+</section>
+
+<div class="fn">
+  <strong>Global data:</strong> Kaggle — COVID-19 Dataset (abhinand05, based on JHU CSSE + Worldometers). Files: country_wise_latest.csv (187 countries), worldometer_data.csv, day_wise.csv, full_grouped.csv, covid_19_clean_complete.csv. Cutoff: July 27, 2020.<br>
+  <strong>India data:</strong> State-wise COVID cumulative cases (states.csv) + India Census 2011 (population_india_census2011.csv). 28 major states after excluding union territories. Cases per million = Total Cases ÷ 2011 Census Population × 1,000,000.<br>
+  Statistical tests: Pearson/Spearman correlation, sklearn LinearRegression, Mann-Whitney U (two-tailed). CFR = Deaths ÷ Confirmed Cases × 100. Report prepared by Aryan Kumar, 24110055, for CS 328 Writing Assignment.
+</div>
+
+</div><!-- /page -->
+
+<script>
+const isDark = matchMedia('(prefers-color-scheme: dark)').matches;
+const gc = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
+const tc = isDark ? '#9b9b93' : '#5a5a54';
+Chart.defaults.font.family = 'Arial, sans-serif';
+Chart.defaults.font.size = 11;
+Chart.defaults.color = tc;
+
+function tab(btn, id) {
+  const p = btn.closest('section');
+  p.querySelectorAll('.tb').forEach(b=>b.classList.remove('on'));
+  p.querySelectorAll('.tc').forEach(c=>c.classList.remove('on'));
+  btn.classList.add('on');
+  document.getElementById(id).classList.add('on');
+}
+
+// ─── Region bar ───
+new Chart(document.getElementById('regionBar'), {
+  type:'bar',
+  data:{
+    labels:['Americas','Europe','South-East Asia','Eastern Med','Africa','Western Pacific'],
+    datasets:[{data:[8839286,3299523,1835297,1490744,723207,292428],backgroundColor:['#ef4444','#3b82f6','#f97316','#8b5cf6','#10b981','#06b6d4'],borderRadius:4}]
+  },
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.raw.toLocaleString()+' confirmed'}}},
+    scales:{x:{grid:{display:false}},y:{grid:{color:gc},ticks:{callback:v=>(v/1e6).toFixed(1)+'M'}}}}
+});
+
+// ─── Global wave ───
+const wkDates=['Jan-26','Feb-02','Feb-09','Feb-16','Feb-23','Mar-01','Mar-08','Mar-15','Mar-22','Mar-29','Apr-05','Apr-12','Apr-19','Apr-26','May-03','May-10','May-17','May-24','May-31','Jun-07','Jun-14','Jun-21','Jun-28','Jul-05','Jul-12','Jul-19','Jul-26'];
+const wkCases=[1563,14669,23308,30784,7411,9400,21576,58994,173325,388730,534004,581370,559267,571450,553882,591856,612210,701898,768543,842162,897231,1009867,1184071,1337621,1459789,1592217,1745061];
+const wkDeaths=[39,306,544,864,697,523,807,2667,8367,20639,37711,47170,48171,42340,37797,35476,32231,30159,27081,30011,30507,35061,33172,31793,34843,37166,42462];
+new Chart(document.getElementById('globalWave'), {
+  type:'bar',
+  data:{labels:wkDates,datasets:[
+    {type:'bar',label:'New cases',data:wkCases,backgroundColor:'rgba(59,130,246,0.55)',yAxisID:'y',order:2},
+    {type:'line',label:'Deaths ×10',data:wkDeaths.map(v=>v*10),borderColor:'#ef4444',backgroundColor:'transparent',tension:0.4,pointRadius:0,borderWidth:2,yAxisID:'y',order:1}
+  ]},
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top',labels:{boxWidth:12,padding:14}},
+    tooltip:{mode:'index',intersect:false,callbacks:{label:ctx=>ctx.datasetIndex===0?'New cases: '+ctx.raw.toLocaleString():'Deaths: '+(ctx.raw/10).toLocaleString()}}},
+    scales:{x:{grid:{display:false},ticks:{maxRotation:45,autoSkip:true,maxTicksLimit:14}},y:{grid:{color:gc},ticks:{callback:v=>(v/1000).toFixed(0)+'K'}}}}
+});
+
+// ─── Country trajectories ───
+const tDates=['Jan-26','Feb-02','Feb-09','Feb-16','Feb-23','Mar-01','Mar-08','Mar-15','Mar-22','Mar-29','Apr-05','Apr-12','Apr-19','Apr-26','May-03','May-10','May-17','May-24','May-31','Jun-07','Jun-14','Jun-21','Jun-28','Jul-05','Jul-12','Jul-19','Jul-26'];
+new Chart(document.getElementById('countryTraj'), {
+  type:'line',
+  data:{labels:tDates,datasets:[
+    {label:'USA',data:[4,3,3,2,2,15,421,2517,30793,107444,196368,218949,199853,212143,193093,172473,159048,158157,147835,145246,149996,187401,268097,341260,413818,468318,460663],borderColor:'#ef4444',backgroundColor:'rgba(239,68,68,0.07)',tension:0.4,pointRadius:0,borderWidth:2.5,fill:true},
+    {label:'Brazil',data:[0,0,0,0,0,2,18,142,1384,2710,6874,11062,16462,24446,38726,60873,78381,122131,151638,176909,175866,215717,260802,258912,261626,233708,320702],borderColor:'#f97316',backgroundColor:'rgba(249,115,22,0.07)',tension:0.4,pointRadius:0,borderWidth:2,fill:true},
+    {label:'India',data:[0,2,1,0,0,0,36,74,283,628,2564,5617,8410,10275,14615,24656,28537,42838,52073,66877,74938,92858,123036,149095,180841,239952,317410],borderColor:'#3b82f6',backgroundColor:'transparent',tension:0.4,pointRadius:0,borderWidth:2},
+    {label:'Russia',data:[0,2,0,0,0,0,15,46,304,1167,3855,10381,27083,38096,53738,75001,72064,62729,61362,61230,61194,55612,49684,46720,45753,44275,40762],borderColor:'#8b5cf6',backgroundColor:'transparent',tension:0.4,pointRadius:0,borderWidth:2},
+    {label:'UK',data:[0,2,12,4,10,66,389,2594,7318,19559,31468,32390,32582,32532,30782,22203,19321,15805,10502,8123,7195,6407,4928,2739,4223,5204,4662],borderColor:'#10b981',backgroundColor:'transparent',tension:0.4,pointRadius:0,borderWidth:2,borderDash:[4,3]}
+  ]},
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{mode:'index',intersect:false,callbacks:{label:ctx=>ctx.dataset.label+': '+ctx.raw.toLocaleString()}}},
+    scales:{x:{grid:{display:false},ticks:{maxRotation:45,maxTicksLimit:14}},y:{grid:{color:gc},ticks:{callback:v=>(v/1000).toFixed(0)+'K'}}}}
+});
+
+// ─── Growth bar ───
+new Chart(document.getElementById('growthBar'), {
+  type:'bar',
+  data:{labels:['Africa','Americas','Eastern Med','South-East Asia','Europe','Western Pacific'],
+    datasets:[{label:'Median weekly growth %',data:[10.56,12.97,5.76,7.07,4.34,4.03],backgroundColor:['#10b981','#ef4444','#8b5cf6','#f97316','#3b82f6','#06b6d4'],borderRadius:4}]},
+  options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>c.raw.toFixed(1)+'% per week'}}},
+    scales:{x:{grid:{color:gc},title:{display:true,text:'Median 1-week % increase',color:tc}},y:{grid:{display:false}}}}
+});
+
+// ─── Test scatter ───
+const scData=[
+  {x:Math.log10(995282),y:Math.log10(11282),l:'Luxembourg',cont:'Europe'},
+  {x:Math.log10(531470),y:Math.log10(6246),l:'UAE',cont:'Asia'},
+  {x:Math.log10(190640),y:Math.log10(15194),l:'USA',cont:'Americas'},
+  {x:Math.log10(170133),y:Math.log10(2741),l:'Germany',cont:'Europe'},
+  {x:Math.log10(148427),y:Math.log10(7038),l:'Italy',cont:'Europe'},
+  {x:Math.log10(68059),y:Math.log10(4768),l:'France',cont:'Europe'},
+  {x:Math.log10(56300),y:Math.log10(5476),l:'S.Korea',cont:'Asia'},
+  {x:Math.log10(37455),y:Math.log10(3289),l:'Brazil',cont:'Americas'},
+  {x:Math.log10(28000),y:Math.log10(9063),l:'S.Africa',cont:'Africa'},
+  {x:Math.log10(12139),y:Math.log10(1178),l:'India',cont:'Asia'},
+  {x:Math.log10(8904),y:Math.log10(1013),l:'Mexico',cont:'Americas'},
+  {x:Math.log10(5764),y:Math.log10(503),l:'Indonesia',cont:'Asia'},
+  {x:Math.log10(1317),y:Math.log10(112),l:'Egypt',cont:'Africa'},
+  {x:Math.log10(9),y:Math.log10(135),l:'Sudan',cont:'Africa'},
+  {x:Math.log10(4),y:Math.log10(25),l:'Yemen',cont:'Asia'},
+];
+const cmap={'Europe':'rgba(59,130,246,0.75)','Asia':'rgba(16,185,129,0.75)','Americas':'rgba(245,158,11,0.75)','Africa':'rgba(239,68,68,0.75)'};
+const highlight=new Set(['Luxembourg','UAE','USA','India','Yemen','Sudan','S.Korea','Brazil','S.Africa']);
+new Chart(document.getElementById('testScatter'), {
+  type:'scatter',data:{datasets:[{data:scData,backgroundColor:scData.map(d=>cmap[d.cont]||'rgba(155,155,147,0.6)'),pointRadius:6,pointHoverRadius:9}]},
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`${c.raw.l}: ${Math.round(Math.pow(10,c.raw.x)).toLocaleString()} tests/M → ${Math.round(Math.pow(10,c.raw.y)).toLocaleString()} cases/M`}}},
+    scales:{x:{grid:{color:gc},title:{display:true,text:'Tests per million (log₁₀)',color:tc},min:0,max:6.2},y:{grid:{color:gc},title:{display:true,text:'Cases per million (log₁₀)',color:tc},min:0,max:5}}},
+  plugins:[{id:'lbl',afterDatasetsDraw(ch){const ctx2=ch.ctx;ch.data.datasets[0].data.forEach((d,i)=>{if(!highlight.has(d.l))return;const m=ch.getDatasetMeta(0);const pt=m.data[i];ctx2.fillStyle=tc;ctx2.font='9px Arial';ctx2.fillText(d.l,pt.x+6,pt.y-4);});}}]
+});
+
+// ─── Continental deaths ───
+new Chart(document.getElementById('contDeaths'), {
+  type:'bar',
+  data:{labels:['Oceania','Africa','Asia','N.America','Europe','S.America'],
+    datasets:[
+      {label:'Median deaths/M',data:[3,7,19,40,100,157],backgroundColor:['#06b6d4','#10b981','#3b82f6','#f97316','#ef4444','#dc2626'],borderRadius:4},
+      {label:'Mean deaths/M',data:[4,18,44,111,215,217],backgroundColor:['rgba(6,182,212,0.3)','rgba(16,185,129,0.3)','rgba(59,130,246,0.3)','rgba(249,115,22,0.3)','rgba(239,68,68,0.3)','rgba(220,38,38,0.3)'],borderRadius:4}
+    ]},
+  options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top',labels:{boxWidth:12,padding:14}},tooltip:{callbacks:{label:c=>c.dataset.label+': '+c.raw.toLocaleString()+'/M'}}},
+    scales:{x:{grid:{display:false}},y:{grid:{color:gc},title:{display:true,text:'Deaths per million',color:tc}}}}
+});
+
+// ─── India Scatter ───
+const indiaData = [
+  {x:1102,y:6975,l:'Bihar'},
+  {x:1029,y:17452,l:'West Bengal'},
+  {x:859,y:148735,l:'Kerala'},
+  {x:828,y:8559,l:'Uttar Pradesh'},
+  {x:573,y:30422,l:'Haryana'},
+  {x:555,y:37460,l:'Tamil Nadu'},
+  {x:550,y:21713,l:'Punjab'},
+  {x:414,y:10572,l:'Jharkhand'},
+  {x:397,y:19568,l:'Assam'},
+  {x:394,y:122113,l:'Goa'},
+  {x:365,y:58831,l:'Maharashtra'},
+  {x:350,y:22991,l:'Tripura'},
+  {x:319,y:48913,l:'Karnataka'},
+  {x:312,y:19183,l:'Telangana'},
+  {x:308,y:13676,l:'Gujarat'},
+  {x:236,y:10917,l:'Madhya Pradesh'},
+  {x:201,y:13923,l:'Rajasthan'},
+  {x:189,y:41640,l:'Uttarakhand'},
+  {x:177,y:22888,l:'Chhattisgarh'},
+  {x:159,y:29305,l:'Andhra Pradesh'},
+  {x:119,y:16094,l:'Nagaland'},
+  {x:86,y:52375,l:'Sikkim'},
+  {x:77,y:36461,l:'Himachal Pradesh'},
+  {x:52,y:110607,l:'Mizoram'},
+  {x:50,y:38427,l:'Meghalaya'},
+  {x:42,y:27341,l:'Manipur'},
+  {x:17,y:14012,l:'Arunachal Pradesh'},
+  {x:13,y:45226,l:'Nagaland'},
+];
+const indiaHighlight = new Set(['Kerala','Bihar','Goa','Mizoram','Maharashtra','Uttar Pradesh','West Bengal']);
+new Chart(document.getElementById('indiaScatter'), {
+  type:'scatter',
+  data:{datasets:[{
+    data:indiaData.map(d=>({x:d.x,y:d.y,l:d.l})),
+    backgroundColor:'rgba(217,119,6,0.65)',
+    pointRadius:6,pointHoverRadius:9
+  }]},
+  options:{responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>`${c.raw.l}: ${c.raw.x}/km² density, ${c.raw.y.toLocaleString()} cases/M`}}},
+    scales:{
+      x:{grid:{color:gc},title:{display:true,text:'Population Density (per km²)',color:tc}},
+      y:{grid:{color:gc},title:{display:true,text:'COVID Cases per Million',color:tc},ticks:{callback:v=>(v/1000).toFixed(0)+'K'}}
+    }},
+  plugins:[{id:'indiaLbl',afterDatasetsDraw(ch){
+    const ctx2=ch.ctx;
+    ch.data.datasets[0].data.forEach((d,i)=>{
+      if(!indiaHighlight.has(d.l))return;
+      const m=ch.getDatasetMeta(0);const pt=m.data[i];
+      ctx2.fillStyle=tc;ctx2.font='bold 9px Arial';
+      ctx2.fillText(d.l,pt.x+6,pt.y-4);
+    });
+  }}]
+});
+
+// ─── India Residuals (outlier states) ───
+const outlierStates = ['Kerala','Goa','Mizoram','Bihar','Madhya Pradesh','Uttar Pradesh','Jharkhand','Rajasthan','Gujarat','Nagaland'];
+const outlierResiduals = [112275,83645,70662,-28436,-28234,-28036,-27810,-25379,-25164,-23562];
+new Chart(document.getElementById('indiaResidual'), {
+  type:'bar',
+  data:{labels:outlierStates,
+    datasets:[{
+      label:'Residual (actual − predicted cases/M)',
+      data:outlierResiduals,
+      backgroundColor:outlierResiduals.map(v=>v>0?'rgba(217,119,6,0.7)':'rgba(59,130,246,0.65)'),
+      borderRadius:4
+    }]},
+  options:{responsive:true,maintainAspectRatio:false,indexAxis:'y',
+    plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>(c.raw>0?'+':'')+Math.round(c.raw).toLocaleString()+' cases/M vs predicted'}}},
+    scales:{
+      x:{grid:{color:gc},title:{display:true,text:'Residual (cases/M)',color:tc},ticks:{callback:v=>(v/1000).toFixed(0)+'K'}},
+      y:{grid:{display:false}}
+    }}
+});
+</script>
+</body>
+</html>
