@@ -29,6 +29,18 @@ body{background:var(--bg);color:var(--text);font-family:'Georgia',serif;line-hei
 .data-badge{display:inline-block;background:rgba(16,185,129,.12);color:#065f46;border:0.5px solid rgba(16,185,129,.3);border-radius:4px;font-size:.7rem;padding:1px 7px;font-family:Arial,sans-serif;font-weight:600;margin-left:6px;}
 @media(prefers-color-scheme:dark){.data-badge{background:rgba(16,185,129,.15);color:#6ee7b7;}}
 
+.github-link {
+  font-family: Arial, sans-serif;
+  font-size: 0.8rem;
+  color: var(--blue);
+  text-decoration: none;
+  border-bottom: 1px solid var(--blue);
+}
+
+.github-link:hover {
+  opacity: 0.7;
+}
+
 /* Section nav */
 .section-nav{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:2rem;font-family:Arial,sans-serif;font-size:.76rem;}
 .snav-btn{padding:4px 12px;border-radius:20px;border:1px solid var(--border2);background:var(--surface2);color:var(--text2);cursor:pointer;transition:all .15s;}
@@ -127,6 +139,11 @@ p{font-size:.94rem;color:var(--text2);font-family:Arial,sans-serif;margin-bottom
 <div class="hdr">
   <div class="hdr-eyebrow">CS 328 — Final Data Analysis Report</div>
   <h1>COVID-19: Global Patterns &amp; India's State-Level Story</h1>
+  <div style="margin-top:10px;">
+    <a href="https://github.com/AceAryan/CS238-Intro_To_Data_Science-Writing_Assignment.git" target="_blank" class="github-link">
+        🔗 View Project on GitHub
+    </a>
+  </div>
   <p class="sub">A two-part investigation — international pandemic dynamics (Jan–Jul 2020) and the relationship between population density and COVID-19 spread across Indian states (2020–2023)</p>
   <p class="meta">
     Aryan Kumar · 24110055 , Sura Sravan Kumar · 24110362 , Shreyash Pandit · 24110334 &nbsp;|&nbsp;
